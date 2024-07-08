@@ -11,7 +11,7 @@ import pytorch_lightning as pl
 from neural_clbf.systems import ControlAffineSystem
 from neural_clbf.systems.utils import ScenarioList
 from neural_clbf.controllers.clf_controller import CLFController
-from neural_clbf.controllers.controller_utils import normalize_with_angles
+from neural_clbf.controllers.controller_utils import normalize_with_angles, normalize
 from neural_clbf.datamodules.episodic_datamodule import EpisodicDataModule
 from neural_clbf.experiments import ExperimentSuite
 
@@ -179,13 +179,23 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             JV: bs x 1 x self.dynamics_model.n_dims Jacobian of each row of V wrt x
         """
         # Apply the offset and range to normalize about zero
-        x_norm = normalize_with_angles(self.dynamics_model, x)
-
+        if len(self.dynamics_model.angle_dims) > 0:
+            x_norm = normalize_with_angles(self.dynamics_model, x)
+        else:
+            x_norm = normalize(self.dynamics_model, x)
         # Compute the CLBF layer-by-layer, computing the Jacobian alongside
 
         # We need to initialize the Jacobian to reflect the normalization that's already
         # been done to x
+        
+        if len(x_norm.shape) == 1:
+            # print('reshaping')
+            x_norm = x_norm.reshape(1,2)
+
         bs = x_norm.shape[0]
+        
+        # print(f'{x_norm.shape=}')
+        # print('bs is', bs)
         JV = torch.zeros(
             (bs, self.n_dims_extended, self.dynamics_model.n_dims)
         ).type_as(x)
@@ -212,10 +222,13 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
                 JV = torch.matmul(torch.diag_embed(torch.sign(V)), JV)
 
         # Compute the final activation
+        # print(V.shape, JV.shape)
         JV = torch.bmm(V.unsqueeze(1), JV)
         V = 0.5 * (V * V).sum(dim=1)
 
+        
         if self.add_nominal:
+            
             # Get the nominal Lyapunov function
             P = self.dynamics_model.P.type_as(x)
             x0 = self.dynamics_model.goal_point.type_as(x)

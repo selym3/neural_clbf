@@ -81,18 +81,18 @@ def main(args):
         y_axis_label="$\\dot{\\theta}$",
         plot_unsafe_region=False,
     )
-    rollout_experiment = RolloutStateSpaceExperiment(
-        "Rollout",
-        start_x,
-        InvertedPendulum.THETA,
-        "$\\theta$",
-        InvertedPendulum.THETA_DOT,
-        "$\\dot{\\theta}$",
-        scenarios=scenarios,
-        n_sims_per_start=1,
-        t_sim=5.0,
-    )
-    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
+    # rollout_experiment = RolloutStateSpaceExperiment(
+    #     "Rollout",
+    #     start_x,
+    #     InvertedPendulum.THETA,
+    #     "$\\theta$",
+    #     InvertedPendulum.THETA_DOT,
+    #     "$\\dot{\\theta}$",
+    #     scenarios=scenarios,
+    #     n_sims_per_start=1,
+    #     t_sim=5.0,
+    # )
+    experiment_suite = ExperimentSuite([V_contour_experiment])#, rollout_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -130,6 +130,9 @@ def main(args):
 
 
 if __name__ == "__main__":
+    import PIL
+    PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
+
     parser = ArgumentParser()
     parser = pl.Trainer.add_argparse_args(parser)
     args = parser.parse_args()
