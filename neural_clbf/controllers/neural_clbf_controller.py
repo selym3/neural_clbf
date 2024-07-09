@@ -289,6 +289,9 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
         V_goal_pt = self.V(self.dynamics_model.goal_point.type_as(x))
         goal_term = 1e1 * V_goal_pt.mean()
         loss.append(("CLBF goal term", goal_term))
+        
+        # Print the goal term
+        print(f"Goal term: {goal_term}")
 
         # Only train these terms if we have a barrier requirement
         if self.barrier:
@@ -297,6 +300,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             safe_violation = F.relu(eps + V_safe - self.safe_level)
             safe_V_term = 1e2 * safe_violation.mean()
             loss.append(("CLBF safe region term", safe_V_term))
+            
+            # Print the safe term
+            print(f"Safe term: {safe_V_term}")
+            
             if accuracy:
                 safe_V_acc = (safe_violation <= eps).sum() / safe_violation.nelement()
                 loss.append(("CLBF safe region accuracy", safe_V_acc))
@@ -306,6 +313,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             unsafe_violation = F.relu(eps + self.unsafe_level - V_unsafe)
             unsafe_V_term = 1e2 * unsafe_violation.mean()
             loss.append(("CLBF unsafe region term", unsafe_V_term))
+            
+            # Print the unsafe term
+            print(f"Unsafe term: {unsafe_V_term}")
+            
             if accuracy:
                 unsafe_V_acc = (
                     unsafe_violation <= eps
@@ -384,6 +395,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             )
 
         loss.append(("CLBF descent term (linearized)", clbf_descent_term_lin))
+        
+        # Print the linearized descent term
+        print(f"Linearized descent term: {clbf_descent_term_lin}")
+        
         if accuracy:
             loss.append(("CLBF descent accuracy (linearized)", clbf_descent_acc_lin))
 
@@ -405,6 +420,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
                 violation.nelement() * self.n_scenarios
             )
         loss.append(("CLBF descent term (simulated)", clbf_descent_term_sim))
+        
+        # Print the simulated descent term
+        print(f"Simulated descent term: {clbf_descent_term_sim}")
+        
         if accuracy:
             loss.append(("CLBF descent accuracy (simulated)", clbf_descent_acc_sim))
 
@@ -440,6 +459,9 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
         clbf_mse_loss = (V - V_nominal) ** 2
         clbf_mse_loss = decrease_factor * clbf_mse_loss.mean()
         loss.append(("CLBF MSE", clbf_mse_loss))
+        
+        # Print the initial loss
+        print(F"Initial loss: {clbf_mse_loss}")
 
         return loss
 

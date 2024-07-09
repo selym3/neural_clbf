@@ -16,7 +16,7 @@ class Point(ControlAffineSystem):
         p = [x, y]
     representing the x and y position of the point,
     and it has control inputs
-        u = [u]
+        u = [ux, uy]
     representing the vertical control.
     The system is parameterized by
         R: radius of the wheels
@@ -38,7 +38,7 @@ class Point(ControlAffineSystem):
     def __init__(
         self,
         nominal_params: Scenario,
-        dt: float = 0.01,
+        dt: float = 0.001,
         controller_dt: Optional[float] = None,
         scenarios: Optional[ScenarioList] = None,
     ):
@@ -51,7 +51,7 @@ class Point(ControlAffineSystem):
         )
 
         self.P = torch.eye(self.n_dims)
-        self.K = torch.zeros(self.n_controls, self.n_dims)
+        # self.K = torch.zeros(self.n_controls, self.n_dims)
 
     def validate_params(self, params) -> bool:
         """Check if a given set of parameters is valid
@@ -113,6 +113,10 @@ class Point(ControlAffineSystem):
             x: a tensor of points in the state space
         """
         safe_mask = x.norm(dim=-1) > 1.0
+        
+        # Set a safe boundary
+        safe_bound = x.norm(dim=-1) < 6.0
+        safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
 

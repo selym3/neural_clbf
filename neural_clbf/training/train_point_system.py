@@ -34,7 +34,7 @@ start_x = torch.tensor(
     ]
 )
 controller_period = 0.01
-simulation_dt = 0.001
+simulation_dt = 0.01
 
 
 def main(args):
@@ -89,7 +89,7 @@ def main(args):
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
-        num_init_epochs=11,
+        num_init_epochs=0,
         epochs_per_episode=200,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
