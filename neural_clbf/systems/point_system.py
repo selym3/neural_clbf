@@ -171,10 +171,6 @@ class Point(ControlAffineSystem):
         """
         # Extract batch size and set up a tensor for holding the result
         batch_size = x.shape[0]
-        # identity_matrix_batch = torch.zeros(batch_size, self.n_dims, self.n_controls)
-        # for i in range(batch_size):
-        #     for j in range(min(self.n_dims, self.n_controls)):
-        #         identity_matrix_batch[i, j, j] = 1
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
         return g #identity_matrix_batch
