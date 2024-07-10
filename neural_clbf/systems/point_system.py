@@ -134,7 +134,8 @@ class Point(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        goal_mask = (x - self.goal_point).norm(dim=-1) <= 0.3
+
+        goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
 
         return goal_mask.logical_and(self.safe_mask(x))
 
@@ -187,6 +188,7 @@ class Point(ControlAffineSystem):
         returns:
             u_nominal: bs x self.n_controls tensor of controls
         """
-        to_target = self.goal_point.repeat(x.shape[0], 1) - x
-        to_target = torch.nn.functional.normalize(to_target, p=2, dim=1) # by normalizing, always falls in allowed controls set
+        # Now perform the operation
+        to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
+        to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
         return to_target # torch.zeros((x.shape[0], self.n_controls))
