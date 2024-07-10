@@ -11,7 +11,7 @@ def plot_inverted_pendulum():
     # training.
     log_file = "saved_models/review/inverted_pendulum_clf.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
-
+    neural_controller.disable_gurobi = True
     # Update parameters
     neural_controller.experiment_suite.experiments[1].start_x = torch.tensor(
         [

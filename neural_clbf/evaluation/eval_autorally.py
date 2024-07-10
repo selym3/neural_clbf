@@ -10,7 +10,7 @@ def plot_autorally():
     # training.
     log_file = "saved_models/autorally/v0.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
-
+    neural_controller.disable_gurobi = True
     # Tweak controller params
     neural_controller.clf_relaxation_penalty = 1e3
     neural_controller.controller_period = 0.05

@@ -72,8 +72,18 @@ def main(args):
         y_axis_label="$y - y_{ref}$",
         plot_unsafe_region=False,
     )
-    # rollout_experiment = RolloutStateSpaceExperiment()
-    experiment_suite = ExperimentSuite([V_contour_experiment])#, rollout_experiment])
+    rollout_experiment = RolloutStateSpaceExperiment(
+        "Rollout",
+        start_x,
+        Point.X,
+        "x",
+        Point.Y,
+        "y",
+        scenarios=[{}],
+        n_sims_per_start=1,
+        t_sim=20.0,
+    )
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -105,7 +115,7 @@ def main(args):
         "logs/point_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=51
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=2
     )
 
     # Train
