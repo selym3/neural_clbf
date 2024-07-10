@@ -131,3 +131,7 @@ neural_clbf/systems/aerobench
 
 # Matlab files
 *.asv
+
+# Submission files on g2
+*.sub
+test*
