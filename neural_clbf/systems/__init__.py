@@ -17,6 +17,7 @@ from .single_integrator_2d import SingleIntegrator2D
 from .autorally import AutoRally
 from .point_system import Point
 from .point_wind_system import PointInWind
+from .x_point_system import XPoint
 
 __all__ = [
     "ControlAffineSystem",
@@ -36,6 +37,7 @@ __all__ = [
     "AutoRally",
     "Point",
     "PointInWind",
+    "XPoint"
 ]
 
 try:
