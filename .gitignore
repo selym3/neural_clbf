@@ -135,3 +135,5 @@ neural_clbf/systems/aerobench
 # Submission files on g2
 *.sub
 test*
+*.err
+*.out

@@ -30,15 +30,15 @@ __all__ = [
     "ObsBFVerificationExperiment",
 ]
 
-try:
-    from .turtlebot_hw_state_feedback_experiment import (  # noqa: F401
-        TurtlebotHWStateFeedbackExperiment,
-    )
-    from .turtlebot_hw_obs_feedback_experiment import (  # noqa: F401
-        TurtlebotHWObsFeedbackExperiment,
-    )
+# try:
+#     from .turtlebot_hw_state_feedback_experiment import (  # noqa: F401
+#         TurtlebotHWStateFeedbackExperiment,
+#     )
+#     from .turtlebot_hw_obs_feedback_experiment import (  # noqa: F401
+#         TurtlebotHWObsFeedbackExperiment,
+#     )
 
-    __all__.append("TurtlebotHWStateFeedbackExperiment")
-    __all__.append("TurtlebotHWObsFeedbackExperiment")
-except ImportError:
-    warn("Could not import HW module; is ROS installed?")
+#     __all__.append("TurtlebotHWStateFeedbackExperiment")
+#     __all__.append("TurtlebotHWObsFeedbackExperiment")
+# except ImportError:
+#     warn("Could not import HW module; is ROS installed?")

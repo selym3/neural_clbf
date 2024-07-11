@@ -1,6 +1,7 @@
 from argparse import ArgumentParser
 from copy import copy
 import subprocess
+# from pytorch_lightning.plugins import DDPPlugin
 
 import PIL.Image
 import numpy as np
@@ -94,7 +95,10 @@ def main(args):
         "logs/point_wind_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=100
+        args, 
+        logger=tb_logger,
+        reload_dataloaders_every_epoch=True, 
+        max_epochs=2
     )
 
     # Train
