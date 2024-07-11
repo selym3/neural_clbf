@@ -115,7 +115,7 @@ class Point(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 6.0
+        safe_bound = x.norm(dim=-1) < 8.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask

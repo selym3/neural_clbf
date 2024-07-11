@@ -100,7 +100,7 @@ def main(args):
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=200,  # disable new data-gathering
+        epochs_per_episode=20,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -115,7 +115,7 @@ def main(args):
         "logs/point_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=2
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=100
     )
 
     # Train
