@@ -72,18 +72,7 @@ def main(args):
         y_axis_label="$y - y_{ref}$",
         plot_unsafe_region=False,
     )
-    rollout_experiment = RolloutStateSpaceExperiment(
-        "Rollout",
-        start_x,
-        Point.X,
-        "x",
-        Point.Y,
-        "y",
-        scenarios=[{}],
-        n_sims_per_start=1,
-        t_sim=20.0,
-    )
-    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
+    experiment_suite = ExperimentSuite([V_contour_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
