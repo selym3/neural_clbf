@@ -9,11 +9,11 @@ from .control_affine_system import ControlAffineSystem
 from neural_clbf.systems.utils import Scenario, ScenarioList
 
 
-class Point(ControlAffineSystem):
+class PointInWind(ControlAffineSystem):
     """
     Represents a point mass
     The system has state
-        p = [x, y, h]
+        p = [x, y ]
     representing the x and y position of the point,
     and it has control inputs
         u = [ux, uy]
@@ -61,7 +61,7 @@ class Point(ControlAffineSystem):
 
     @property
     def n_dims(self) -> int:
-        return Point.N_DIMS
+        return PointInWind.N_DIMS
 
     @property
     def angle_dims(self) -> List[int]:
@@ -69,7 +69,7 @@ class Point(ControlAffineSystem):
 
     @property
     def n_controls(self) -> int:
-        return Point.N_CONTROLS
+        return PointInWind.N_CONTROLS
 
     @property
     def state_limits(self) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -79,8 +79,8 @@ class Point(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[Point.X] = 5
-        upper_limit[Point.Y] = 5
+        upper_limit[PointInWind.X] = 10
+        upper_limit[PointInWind.Y] = 10
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,8 +94,8 @@ class Point(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[Point.UX] = 1
-        upper_limit[Point.UY] = 1
+        upper_limit[PointInWind.UX] = 1
+        upper_limit[PointInWind.UY] = 1
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -112,7 +112,7 @@ class Point(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 6.0
+        safe_bound = x.norm(dim=-1) < 9.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -149,10 +149,10 @@ class Point(ControlAffineSystem):
         batch_size = x.shape[0]
         f = torch.zeros((batch_size, self.n_dims, 1))
         f = f.type_as(x)
-
-        # f is a zero vector as nothing should happen when no control input is given
-        f[:, Point.X, 0] = 0
-        f[:, Point.Y, 0] = 0
+        
+        # The system is guided by some vector field
+        f[:, PointInWind.X, 0] = x[:, 1]
+        f[:, PointInWind.Y, 0] = x[:, 1] - x[:, 0]
 
         return f
 
