@@ -6,8 +6,8 @@ import torch
 import torch.distributed as dist
 import os
 
-# matplotlib.use('TkAgg')
-matplotlib.use('Agg') # on g2
+matplotlib.use('TkAgg')
+# matplotlib.use('Agg') # on g2
 
 start_x = torch.tensor(
     [
@@ -23,13 +23,13 @@ start_x = torch.tensor(
 def plot_point():
     # Load the checkpoint file. This should include the experiment suite used during
     # training.
-    log_file = "/home/jnl77/neural_clbf/logs/point_wind_system/commit_704a00d/version_0/checkpoints/epoch=99-step=20858.ckpt"
+    log_file = "/home/myles/Programming/neural_clbf/logs/point_wind_system/commit_704a00d/version_0/checkpoints/epoch=99-step=20858.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
 
     # Tweak controller params
     neural_controller.clf_relaxation_penalty = 1
     neural_controller.controller_period = 0.01
-    neural_controller.clbf_lambda = 100.0
+    # neural_controller.clbf_lambda = 100.0
     # neural_controller.safe_level = 100.0
 
     rollout_experiment = RolloutStateSpaceExperiment(
@@ -61,9 +61,10 @@ def setup():
     master_addr = os.environ.get('MASTER_ADDR', 'localhost')
     master_port = os.environ.get('MASTER_PORT', '12355')
     
-    dist.init_process_group(backend='nccl', init_method=f'tcp://{master_addr}:{master_port}', rank=rank, world_size=world_size)
-    device = rank % torch.cuda.device_count()
-    torch.cuda.set_device(device)
+    dist.init_process_group(backend='gloo', init_method=f'tcp://{master_addr}:{master_port}', rank=rank, world_size=world_size)
+    # if torch.gpu_avaiable ... :
+    device = 0#  rank % torch.cuda.device_count()
+    # torch.cuda.set_device(device)
     
 if __name__ == "__main__":
     setup()
