@@ -80,7 +80,7 @@ def main(args):
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=20,  # disable new data-gathering
+        epochs_per_episode=30,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -98,7 +98,7 @@ def main(args):
         args, 
         logger=tb_logger,
         reload_dataloaders_every_epoch=True, 
-        max_epochs=2
+        max_epochs=100
     )
 
     # Train

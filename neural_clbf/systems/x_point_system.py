@@ -43,10 +43,10 @@ class XPoint(ControlAffineSystem):
             dt=dt,
             controller_dt=controller_dt,
             scenarios=scenarios,
-            use_linearized_controller=False,
+            use_linearized_controller=True,
         )
 
-        self.P = torch.eye(self.n_dims)
+        # self.P = torch.eye(self.n_dims)
         # self.K = torch.zeros(self.n_controls, self.n_dims)
 
     def validate_params(self, params) -> bool:
@@ -129,7 +129,7 @@ class XPoint(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        goal_mask = (x - self.goal_point).norm(dim=-1) <= 0.3
+        goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
 
         return goal_mask.logical_and(self.safe_mask(x))
 
@@ -171,18 +171,18 @@ class XPoint(ControlAffineSystem):
 
         return g #identity_matrix_batch
 
-    def u_nominal(
-        self, x: torch.Tensor, params: Optional[Scenario] = None
-    ) -> torch.Tensor:
-        """
-        Compute the nominal control for the nominal parameters.
+    # def u_nominal(
+    #     self, x: torch.Tensor, params: Optional[Scenario] = None
+    # ) -> torch.Tensor:
+    #     """
+    #     Compute the nominal control for the nominal parameters.
 
-        args:
-            x: bs x self.n_dims tensor of state
-            params: the model parameters used
-        returns:
-            u_nominal: bs x self.n_controls tensor of controls
-        """
-        to_target = self.goal_point.repeat(x.shape[0], 1) - x
-        to_target = torch.nn.functional.normalize(to_target, p=2, dim=1) # by normalizing, always falls in allowed controls set
-        return to_target # torch.zeros((x.shape[0], self.n_controls))
+    #     args:
+    #         x: bs x self.n_dims tensor of state
+    #         params: the model parameters used
+    #     returns:
+    #         u_nominal: bs x self.n_controls tensor of controls
+    #     """
+    #     to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
+    #     to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
+    #     return to_target # torch.zeros((x.shape[0], self.n_controls))

@@ -349,6 +349,20 @@ class CLFController(Controller):
         params.append(u_ref)
         params.append(torch.tensor([relaxation_penalty]).type_as(x))
 
+        # Debug purpose
+        # # Print the shapes of all parameters
+        # print(f"Lf_V shapes: {[Lf_V[:, i, :].shape for i in range(self.n_scenarios)]}")
+        # print(f"Lg_V shapes: {[Lg_V[:, i, :].shape for i in range(self.n_scenarios)]}")
+        # print(f"V shape: {V.reshape(-1, 1).shape}")
+        # print(f"u_ref shape: {u_ref.shape}")
+        # print(f"relaxation_penalty shape: {torch.tensor([relaxation_penalty]).type_as(x).shape}")
+
+        # # Print sample values (optional, can be removed if too verbose)
+        # print(f"Lf_V sample: {Lf_V[:, 0, :5]}")
+        # print(f"Lg_V sample: {Lg_V[:, 0, :5]}")
+        # print(f"V sample: {V[:5]}")
+        # print(f"u_ref sample: {u_ref[:5]}")
+
         # We've already created a parameterized QP solver, so we can use that
         result = self.differentiable_qp_solver(
             *params,
