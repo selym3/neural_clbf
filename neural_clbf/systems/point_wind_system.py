@@ -154,9 +154,13 @@ class PointInWind(ControlAffineSystem):
         f = torch.zeros((batch_size, self.n_dims, 1))
         f = f.type_as(x)
         
+        a = x[:, 1]
+        b = x[:, 1] - x[:, 0]
+        sqa2b2 = (a.type_as(x) ** 2 + b.type_as(x) ** 2 ).norm(dim=-1)
+
         # The system is guided by some vector field
-        f[:, PointInWind.X, 0] = x[:, 1]
-        f[:, PointInWind.Y, 0] = x[:, 1] - x[:, 0]
+        f[:, PointInWind.X, 0] = a / sqa2b2
+        f[:, PointInWind.Y, 0] = b / sqa2b2
 
         return f
 
