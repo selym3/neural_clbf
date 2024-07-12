@@ -77,7 +77,7 @@ class PointInWind(ControlAffineSystem):
         Return a tuple (upper, lower) describing the expected range of states for this
         system
         """
-        # define upper and lower limits based around the nominal equilibrium input
+
         upper_limit = torch.ones(self.n_dims)
         upper_limit[PointInWind.X] = 10
         upper_limit[PointInWind.Y] = 10
@@ -92,10 +92,10 @@ class PointInWind(ControlAffineSystem):
         Return a tuple (upper, lower) describing the range of allowable control
         limits for this system
         """
-        # define upper and lower limits based around the nominal equilibrium input
+
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[PointInWind.UX] = 1
-        upper_limit[PointInWind.UY] = 1
+        upper_limit[PointInWind.UX] = 5
+        upper_limit[PointInWind.UY] = 5
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
