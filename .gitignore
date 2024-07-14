@@ -137,3 +137,7 @@ neural_clbf/systems/aerobench
 test*
 *.err
 *.out
+error.txt
+
+# Plots
+plots/

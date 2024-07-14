@@ -273,6 +273,11 @@ class CLFContourExperiment(Experiment):
         # )
         ax.set_xlabel(self.x_axis_label)
         ax.set_ylabel(self.y_axis_label)
+        
+        save_dir = "./plots"
+        save_plots = True
+        if save_plots:
+            fig.savefig(f"{save_dir}/contour.png")
 
         fig_handle = ("V Contour", fig)
 
