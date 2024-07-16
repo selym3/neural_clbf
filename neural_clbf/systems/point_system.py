@@ -105,14 +105,15 @@ class Point(ControlAffineSystem):
     
     @property
     def goal_point(self):
-        return torch.tensor([[ 4.0, 4.0 ]])
+        # return torch.tensor([[ 4.0, 4.0 ]])
+        return torch.tensor([[ 0.0, 0.0 ]])
 
     def safe_mask(self, x):
         """Return the mask of x indicating safe regions for the obstacle task
         args:
             x: a tensor of points in the state space
         """
-        safe_mask = x.norm(dim=-1) > 1.0
+        safe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) > 1.0
         
         # Set a safe boundary
         safe_bound = x.norm(dim=-1) < 8.0
@@ -125,7 +126,8 @@ class Point(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        unsafe_mask = x.norm(dim=-1) <= 1.0
+        unsafe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) <= 0.1
+        # unsafe_mask = x.norm(dim=-1) <= 1.0
 
         return unsafe_mask
 
@@ -135,7 +137,8 @@ class Point(ControlAffineSystem):
             x: a tensor of points in the state space
         """
 
-        goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
+        # goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
+        goal_mask = x.norm(dim=-1) <= 0.3
 
         return goal_mask.logical_and(self.safe_mask(x))
 
@@ -189,6 +192,6 @@ class Point(ControlAffineSystem):
             u_nominal: bs x self.n_controls tensor of controls
         """
         # Now perform the operation
-        to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
-        to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
-        return to_target # torch.zeros((x.shape[0], self.n_controls))
+        # to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
+        # to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
+        return torch.zeros((x.shape[0], self.n_controls)).type_as(x) #to_target # torch.zeros((x.shape[0], self.n_controls))

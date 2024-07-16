@@ -7,7 +7,8 @@ import matplotlib
 from neural_clbf.controllers import NeuralCBFController
 
 
-matplotlib.use('TkAgg')
+# matplotlib.use('TkAgg')
+matplotlib.use('Agg') # on g2
 
 
 def plot_linear_satellite():
@@ -16,6 +17,8 @@ def plot_linear_satellite():
     log_file = "saved_models/review/linear_satellite_cbf.ckpt"
     # log_file = "logs/linear_satellite_cbf/tanh/commit_7390ab2/version_0/checkpoints/epoch=20-step=3695.ckpt"
     neural_controller = NeuralCBFController.load_from_checkpoint(log_file)
+    
+    neural_controller.disable_gurobi = True
 
     # Tweak parameters
     neural_controller.cbf_relaxation_penalty = 1e2
@@ -100,8 +103,9 @@ def plot_linear_satellite():
     y = 0.25 * np.sin(u) * np.sin(v)
     z = 0.25 * np.cos(v)
     ax.plot_surface(x, y, z, color="magenta", alpha=1.0, zorder=0)
+    plt.savefig("./plots/linear_satellite_plot.png")
 
-    plt.show()
+    # plt.show()
 
 
 if __name__ == "__main__":

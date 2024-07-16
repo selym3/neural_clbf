@@ -4,8 +4,8 @@ import matplotlib
 from neural_clbf.controllers import NeuralCLBFController
 
 
-matplotlib.use('TkAgg')
-
+# matplotlib.use('TkAgg')
+matplotlib.use('Agg') # on g2
 
 def eval_turtlebot():
     # Load the checkpoint file. This should include the experiment suite used during
@@ -27,6 +27,7 @@ def plot_turtlebot():
     neural_controller = NeuralCLBFController.load_from_checkpoint(
         log_dir + "version_0.ckpt"
     )
+    neural_controller.disable_gurobi = True
 
     # Set the path to load from
     experiment_dir = log_dir + "experiments/2021-08-20_11_02_38/"
@@ -35,6 +36,10 @@ def plot_turtlebot():
     results_df = pd.read_csv(experiment_dir + "/Rollout State Space.csv")
     neural_controller.experiment_suite.experiments[1].plot(
         neural_controller, results_df, display_plots=True
+    )
+    
+    neural_controller.experiment_suite.run_all_and_plot(
+        neural_controller, display_plots=True
     )
 
 

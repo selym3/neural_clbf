@@ -2,8 +2,8 @@ import matplotlib
 from neural_clbf.controllers import NeuralCLBFController
 
 
-matplotlib.use('TkAgg')
-
+# matplotlib.use('TkAgg')
+matplotlib.use('Agg') # on g2
 
 def plot_autorally():
     # Load the checkpoint file. This should include the experiment suite used during
@@ -20,6 +20,9 @@ def plot_autorally():
 
     # Run the experiments and save the results
     neural_controller.experiment_suite.experiments[1].run_and_plot(
+        neural_controller, display_plots=True
+    )
+    neural_controller.experiment_suite.run_all_and_plot(
         neural_controller, display_plots=True
     )
 

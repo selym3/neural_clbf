@@ -94,8 +94,8 @@ class PointInWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[PointInWind.UX] = 5
-        upper_limit[PointInWind.UY] = 5
+        upper_limit[PointInWind.UX] = 10
+        upper_limit[PointInWind.UY] = 10
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)

@@ -50,12 +50,12 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_conditions,
-        trajectories_per_episode=1,  # disable collecting data from trajectories
+        trajectories_per_episode=3,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
-        batch_size=64,
+        batch_size=128,
         quotas={"safe": 0.4, "unsafe": 0.2, "goal": 0.2},
     )
 
@@ -64,7 +64,7 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-6.0, 6.0), (-6.0, 6.0)],
+        domain=[(-10.0, 10.0), (-10.0, 10.0)],
         n_grid=25,
         x_axis_index=Point.X,
         y_axis_index=Point.Y,
@@ -101,7 +101,7 @@ def main(args):
         .strip()
     )
     tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/point_system/", name=f"commit_{current_git_hash}"
+        "logs/point_system_ba3/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
         args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=100

@@ -201,6 +201,11 @@ class CarSCurveExperiment(Experiment):
         ax.plot(masked_df.index, masked_df.value)
         ax.set_xlabel("t")
         ax.set_ylabel("Tracking Error")
+        
+        save_dir = "./plots"
+        save_plots = True
+        if save_plots:
+            fig.savefig(f"{save_dir}/s_curve.png")
 
         fig_handle = ("S-Curve Tracking", fig)
 

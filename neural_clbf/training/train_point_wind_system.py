@@ -19,8 +19,7 @@ from neural_clbf.experiments import (
     CLFContourExperiment,
     RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import Point, PointInWind
-
+from neural_clbf.systems import Point, PointInWind, LinearWind
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -72,7 +71,7 @@ def main(args):
         data_module,
         experiment_suite,
         clbf_hidden_layers=2,
-        clbf_hidden_size=64,
+        clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
