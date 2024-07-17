@@ -153,7 +153,7 @@ class XCirPoint(ControlAffineSystem):
         f = f.type_as(x)
 
         a = x[:, 1] - 4
-        b = x[:, 1] - x[:, 0]
+        b = - x[:, 0] + 4
         
         # Apply scaling
         f[:, XCirPoint.X, 0] = a
