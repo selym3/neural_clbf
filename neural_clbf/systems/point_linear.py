@@ -79,8 +79,8 @@ class LinearWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[LinearWind.X] = 10
-        upper_limit[LinearWind.Y] = 10
+        upper_limit[LinearWind.X] = 13
+        upper_limit[LinearWind.Y] = 13
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,8 +94,8 @@ class LinearWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[LinearWind.UX] = 5
-        upper_limit[LinearWind.UY] = 5
+        upper_limit[LinearWind.UX] = 12
+        upper_limit[LinearWind.UY] = 12
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -116,7 +116,7 @@ class LinearWind(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 9.0
+        safe_bound = x.norm(dim=-1) < 20.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask

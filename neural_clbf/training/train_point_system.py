@@ -23,16 +23,16 @@ from neural_clbf.systems import Point
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
-start_x = torch.tensor(
-    [
-        [-4.0, -4.0],
-        [-4.5, -4.5],
-        [-4.0, -4.5],
-        [-4.5, -4.0],
-        [ 4.5,  4.5],
-        [ 4.0,  4.0]
-    ]
-)
+# start_x = torch.tensor(
+#     [
+#         [-4.0, -4.0],
+#         [-4.5, -4.5],
+#         [-4.0, -4.5],
+#         [-4.5, -4.0],
+#         [ 4.5,  4.5],
+#         [ 4.0,  4.0]
+#     ]
+# )
 controller_period = 0.01
 simulation_dt = 0.01
 
@@ -44,8 +44,8 @@ def main(args):
 
     # Initialize the DataModule
     initial_conditions = [
-        (-4.5, 4.5),  # x
-        (-4.5, 4.5),  # y
+        (-10, 10),  # x
+        (-10, 10),  # y
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -64,13 +64,13 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-10.0, 10.0), (-10.0, 10.0)],
+        domain=[(-15.0, 15.0), (-15.0, 15.0)],
         n_grid=25,
         x_axis_index=Point.X,
         y_axis_index=Point.Y,
-        x_axis_label="$x - x_{ref}$",
-        y_axis_label="$y - y_{ref}$",
-        plot_unsafe_region=False,
+        x_axis_label="$x$",
+        y_axis_label="$y$",
+        plot_unsafe_region=True,
     )
     experiment_suite = ExperimentSuite([V_contour_experiment])
 
@@ -81,9 +81,9 @@ def main(args):
         data_module,
         experiment_suite,
         clbf_hidden_layers=2,
-        clbf_hidden_size=64,
+        clbf_hidden_size=128,
         clf_lambda=0.05,
-        safe_level=1.0,
+        safe_level=1,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
@@ -101,10 +101,10 @@ def main(args):
         .strip()
     )
     tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/point_system_ba3/", name=f"commit_{current_git_hash}"
+        "logs/point_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=100
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=60
     )
 
     # Train

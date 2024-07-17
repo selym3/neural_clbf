@@ -11,10 +11,12 @@ matplotlib.use('Agg') # on g2
 start_x = torch.tensor(
     [
         # [4.0, -4.0],
-        [-4.0, 6.0],
+        # [-4.0, 6.0],
         # [-4.5, -4.5],
         # [-4.0, -4.5],
         # [-4.5, -4.0],
+        [5.0, 0.0],
+        [5.0, 5.0],
         # [ 5,  4.5],
         # [6.0, 3.0]
         # [ 4.0,  4.0]
@@ -29,7 +31,25 @@ def plot_point():
     # log_file = "/home/jnl77/neural_clbf/logs/point_system_sw/commit_ca80db0/version_1/checkpoints/epoch=99-step=20858.ckpt"
     # log_file = "/home/jnl77/neural_clbf/logs/point_system_ba/commit_ca80db0/version_0/checkpoints/epoch=99-step=10459.ckpt"
     # log_file = "/home/jnl77/neural_clbf/logs/point_system_0un/commit_ca80db0/version_1/checkpoints/epoch=99-step=20858.ckpt"
-    log_file = "/home/jnl77/neural_clbf/logs/point_system_ba3/commit_ca80db0/version_0/checkpoints/epoch=99-step=10459.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_ba3/commit_ca80db0/version_0/checkpoints/epoch=99-step=10459.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_ba3/commit_ca80db0/version_1/checkpoints/epoch=99-step=10459.ckpt"
+    # log_file = "logs/point_system_sws/commit_2362a64/version_0/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_sws/commit_2362a64/version_1/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_sws/commit_2362a64/version_2/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_sws/commit_2362a64/version_3/checkpoints/epoch=59-step=8338.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_sws/commit_2362a64/version_5/checkpoints/epoch=59-step=8338.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_0/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_1/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_2/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_3/checkpoints/epoch=59-step=3174.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_4/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v1/commit_2362a64/version_5/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_s1/commit_2362a64/version_0/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v2/commit_2362a64/version_0/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v2/commit_2362a64/version_1/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_v2/commit_2362a64/version_3/checkpoints/epoch=59-step=4189.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system/commit_2362a64/version_0/checkpoints/epoch=43-step=2493.ckpt"
+    log_file = "/home/jnl77/neural_clbf/logs/point_system/commit_2362a64/version_1/checkpoints/epoch=59-step=4189.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
 
     # Tweak controller params
@@ -49,7 +69,7 @@ def plot_point():
         n_sims_per_start=1,
         t_sim=40.0,
     )
-
+    # neural_controller.experiment_suite.experiments[0].plot_unsafe_region = True
     rollout_experiment.run_and_plot(neural_controller, True)
 
     neural_controller.experiment_suite.run_all_and_plot(

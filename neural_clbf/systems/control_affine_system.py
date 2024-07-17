@@ -87,6 +87,9 @@ class ControlAffineSystem(ABC):
         A = jacobian(dynamics, x0).squeeze().cpu().numpy()
         A = np.reshape(A, (self.n_dims, self.n_dims))
 
+        print("u0", u0)
+        print("x0", x0)
+        print("A", A)
         return A
 
     def compute_B_matrix(self, scenario: Optional[Scenario]) -> np.ndarray:
@@ -99,6 +102,7 @@ class ControlAffineSystem(ABC):
         B = self._g(self.goal_point, scenario).squeeze().cpu().numpy()
         B = np.reshape(B, (self.n_dims, self.n_controls))
 
+        print("B", B)
         return B
 
     def linearized_ct_dynamics_matrices(

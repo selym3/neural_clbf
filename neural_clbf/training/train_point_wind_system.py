@@ -34,18 +34,18 @@ def main(args):
 
     # Initialize the DataModule
     initial_domain = [
-        (-6.3, 6.3),  # x
-        (-6.3, 6.3),  # y
+        (-10, 10),  # x
+        (-10, 10),  # y
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_domain,
-        trajectories_per_episode=1,  # disable collecting data from trajectories
+        trajectories_per_episode=3,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
-        batch_size=64,
+        batch_size=128,
         quotas={"safe": 0.4, "unsafe": 0.2, "goal": 0.2},
     )
 
@@ -54,7 +54,7 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-10, 10), (-10.0, 10.0)],
+        domain=[(-15, 15), (-15.0, 15.0)],
         n_grid=25,
         x_axis_index=PointInWind.X,
         y_axis_index=PointInWind.Y,
@@ -79,7 +79,7 @@ def main(args):
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=30,  # disable new data-gathering
+        epochs_per_episode=20,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -97,7 +97,7 @@ def main(args):
         args, 
         logger=tb_logger,
         reload_dataloaders_every_epoch=True, 
-        max_epochs=100
+        max_epochs=70
     )
 
     # Train

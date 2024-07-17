@@ -79,8 +79,8 @@ class PointInWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[PointInWind.X] = 10
-        upper_limit[PointInWind.Y] = 10
+        upper_limit[PointInWind.X] = 13
+        upper_limit[PointInWind.Y] = 13
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,8 +94,8 @@ class PointInWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[PointInWind.UX] = 10
-        upper_limit[PointInWind.UY] = 10
+        upper_limit[PointInWind.UX] = 25
+        upper_limit[PointInWind.UY] = 25
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -116,7 +116,7 @@ class PointInWind(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 9.0
+        safe_bound = x.norm(dim=-1) < 20.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask

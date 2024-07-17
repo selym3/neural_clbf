@@ -1,7 +1,7 @@
 import matplotlib
 from neural_clbf.controllers import NeuralCLBFController
 from neural_clbf.experiments import RolloutStateSpaceExperiment
-from neural_clbf.systems import Point
+from neural_clbf.systems import Point, LinearWind, PointInWind
 import torch
 import torch.distributed as dist
 import os
@@ -35,7 +35,8 @@ def plot_point():
     # log_file = "/home/jnl77/neural_clbf/logs/point_wind_system/commit_ca80db0/version_2/checkpoints/epoch=149-step=31428.ckpt"
     # log_file = "/home/jnl77/neural_clbf/logs/point_wind_system/commit_ca80db0/version_5/checkpoints/epoch=99-step=15298.ckpt"
     # log_file = "/home/jnl77/neural_clbf/logs/xpoint_system/commit_ca80db0/version_0/checkpoints/epoch=149-step=44577.ckpt"
-    log_file = "/home/jnl77/neural_clbf/logs/point_system_0un/commit_ca80db0/version_1/checkpoints/epoch=99-step=20858.ckpt"
+    # log_file = "/home/jnl77/neural_clbf/logs/point_system_0un/commit_ca80db0/version_1/checkpoints/epoch=99-step=20858.ckpt"
+    log_file = "/home/jnl77/neural_clbf/logs/point_linear_system/commit_2362a64/version_0/checkpoints/epoch=69-step=5564.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
 
     # Tweak controller params
@@ -47,9 +48,9 @@ def plot_point():
     rollout_experiment = RolloutStateSpaceExperiment(
         "Rollout",
         start_x,
-        Point.X,
+        LinearWind.X,
         "x",
-        Point.Y,
+        LinearWind.Y,
         "y",
         scenarios=[{}],
         n_sims_per_start=1,

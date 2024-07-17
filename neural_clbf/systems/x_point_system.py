@@ -43,10 +43,10 @@ class XPoint(ControlAffineSystem):
             dt=dt,
             controller_dt=controller_dt,
             scenarios=scenarios,
-            use_linearized_controller=False,
+            use_linearized_controller=True,
         )
 
-        self.P = torch.eye(self.n_dims)
+        # self.P = torch.eye(self.n_dims)
         # self.K = torch.zeros(self.n_controls, self.n_dims)
 
     def validate_params(self, params) -> bool:
@@ -78,8 +78,8 @@ class XPoint(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[XPoint.X] = 10
-        upper_limit[XPoint.Y] = 10
+        upper_limit[XPoint.X] = 13
+        upper_limit[XPoint.Y] = 13
 
         lower_limit = -1.0 * upper_limit
 
@@ -110,7 +110,7 @@ class XPoint(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 9.0
+        safe_bound = x.norm(dim=-1) < 20.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -151,7 +151,8 @@ class XPoint(ControlAffineSystem):
 
         a = (x[:, 1] - 4)
         b = (x[:, 1] - 4) - (x[:, 0] - 4)
-        sqa2b2 = (a.type_as(x) ** 2 + b.type_as(x) ** 2 ).norm(dim=-1)
+        epsilon = 1e-6 
+        sqa2b2 =torch.sqrt(a**2 + b**2 + epsilon)
         
         f[:, XPoint.X, 0] = a / sqa2b2
         f[:, XPoint.Y, 0] = b / sqa2b2
@@ -175,19 +176,19 @@ class XPoint(ControlAffineSystem):
 
         return g #identity_matrix_batch
 
-    def u_nominal(
-        self, x: torch.Tensor, params: Optional[Scenario] = None
-    ) -> torch.Tensor:
-        """
-        Compute the nominal control for the nominal parameters.
+    # def u_nominal(
+    #     self, x: torch.Tensor, params: Optional[Scenario] = None
+    # ) -> torch.Tensor:
+    #     """
+    #     Compute the nominal control for the nominal parameters.
 
-        args:
-            x: bs x self.n_dims tensor of state
-            params: the model parameters used
-        returns:
-            u_nominal: bs x self.n_controls tensor of controls
-        """
-        # to_target = self.goal_point[0,0].repeat(x.shape[0], 1).type_as(x) - x
-        # to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
-        # to = self.goal_point[0,0].repeat(x.shape[0], 1).type_as(x) - x[:, XPoint.X]
-        return torch.zeros((x.shape[0], 1)).type_as(x) # 5.0 * torch.nn.functional.normalize(to, p=2, dim=0) # torch.zeros((x.shape[0], self.n_controls))
+    #     args:
+    #         x: bs x self.n_dims tensor of state
+    #         params: the model parameters used
+    #     returns:
+    #         u_nominal: bs x self.n_controls tensor of controls
+    #     """
+    #     # to_target = self.goal_point[0,0].repeat(x.shape[0], 1).type_as(x) - x
+    #     # to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
+    #     # to = self.goal_point[0,0].repeat(x.shape[0], 1).type_as(x) - x[:, XPoint.X]
+    #     return torch.zeros((x.shape[0], 1)).type_as(x) # 5.0 * torch.nn.functional.normalize(to, p=2, dim=0) # torch.zeros((x.shape[0], self.n_controls))
