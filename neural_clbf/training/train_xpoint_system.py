@@ -39,7 +39,7 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_domain,
-        trajectories_per_episode=15,  # disable collecting data from trajectories
+        trajectories_per_episode=10,  # disable collecting data from trajectories
         trajectory_length=3,
         fixed_samples=10000,
         max_points=100000,
@@ -78,7 +78,7 @@ def main(args):
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=30,  # disable new data-gathering
+        epochs_per_episode=40,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )

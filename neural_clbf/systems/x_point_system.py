@@ -81,6 +81,7 @@ class XPoint(ControlAffineSystem):
         upper_limit[XPoint.Y] = 5
 
         lower_limit = -1.0 * upper_limit
+        lower_limit[XPoint.Y] = -1
 
         return (upper_limit, lower_limit)
 
