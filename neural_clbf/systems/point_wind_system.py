@@ -1,4 +1,4 @@
-"""Define a dymamical system for Point3"""
+"""Define a dymamical system for Point3 in Unstable Wind"""
 from typing import Tuple, Optional, List
 
 import torch
@@ -17,7 +17,7 @@ class PointInWind(ControlAffineSystem):
     representing the x and y position of the point,
     and it has control inputs
         u = [ux, uy]
-    representing the vertical control.
+    representing the horizontal and vertical control.
     """
 
     # Number of states and controls
@@ -79,8 +79,8 @@ class PointInWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[PointInWind.X] = 13
-        upper_limit[PointInWind.Y] = 13
+        upper_limit[PointInWind.X] = 5
+        upper_limit[PointInWind.Y] = 5
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,8 +94,8 @@ class PointInWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[PointInWind.UX] = 25
-        upper_limit[PointInWind.UY] = 25
+        upper_limit[PointInWind.UX] = 15
+        upper_limit[PointInWind.UY] = 15
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -106,7 +106,7 @@ class PointInWind(ControlAffineSystem):
     
     @property
     def u_eq(self):
-        return torch.tensor([ [-4.0, 0.0 ] ])
+        return torch.tensor([[-1.0, 0.0]])
 
     def safe_mask(self, x):
         """Return the mask of x indicating safe regions for the obstacle task
@@ -116,7 +116,7 @@ class PointInWind(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 20.0
+        safe_bound = x.norm(dim=-1) < 6.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -153,14 +153,15 @@ class PointInWind(ControlAffineSystem):
         batch_size = x.shape[0]
         f = torch.zeros((batch_size, self.n_dims, 1))
         f = f.type_as(x)
-        
+
         a = x[:, 1]
         b = x[:, 1] - x[:, 0]
-        sqa2b2 = (a.type_as(x) ** 2 + b.type_as(x) ** 2 ).norm(dim=-1)
-
-        # The system is guided by some vector field
-        f[:, PointInWind.X, 0] = a / sqa2b2
-        f[:, PointInWind.Y, 0] = b / sqa2b2
+        
+        magnitude = torch.sqrt(a**2 + b**2)
+        
+        # Apply scaling
+        f[:, PointInWind.X, 0] = a / magnitude
+        f[:, PointInWind.Y, 0] = b / magnitude
 
         return f
 
@@ -178,7 +179,7 @@ class PointInWind(ControlAffineSystem):
         batch_size = x.shape[0]
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
-        return g #identity_matrix_batch
+        return g
 
     # def u_nominal(
     #     self, x: torch.Tensor, params: Optional[Scenario] = None

@@ -19,7 +19,7 @@ from neural_clbf.experiments import (
     CLFContourExperiment,
     RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import Point, PointInWind, LinearWind
+from neural_clbf.systems import PointInWind, LinearWind
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -34,14 +34,14 @@ def main(args):
 
     # Initialize the DataModule
     initial_domain = [
-        (-10, 10),  # x
-        (-10, 10),  # y
+        (-5, 5),  # x
+        (-5, 5),  # y
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_domain,
-        trajectories_per_episode=3,  # disable collecting data from trajectories
-        trajectory_length=1,
+        trajectories_per_episode=10,  # disable collecting data from trajectories
+        trajectory_length=3,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
@@ -54,7 +54,7 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-15, 15), (-15.0, 15.0)],
+        domain=[(-10.0, 10.0), (-10.0, 10.0)],
         n_grid=25,
         x_axis_index=PointInWind.X,
         y_axis_index=PointInWind.Y,
@@ -70,7 +70,7 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
+        clbf_hidden_layers=3,
         clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
