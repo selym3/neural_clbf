@@ -420,6 +420,12 @@ class CLFController(Controller):
         # the input x requires a gradient or not) or if cvx should be used regardless
         # (e.g. due to gurobi licensing issues)
         if requires_grad or self.disable_gurobi:
+            # print("Using CVXPYLayers to solve the CLF QP")
+            # print("u_ref: ", u_ref)
+            # print("V: ", V)
+            # print("Lf_V: ", Lf_V)
+            # print("Lg_V: ", Lg_V)
+            # print("relaxation_penalty: ", relaxation_penalty)
             return self._solve_CLF_QP_cvxpylayers(
                 x, u_ref, V, Lf_V, Lg_V, relaxation_penalty
             )

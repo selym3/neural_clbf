@@ -1,4 +1,4 @@
-"""Define a dymamical system for Point3"""
+"""Define a dymamical system for Point3 in Circular Wind"""
 from typing import Tuple, Optional, List
 
 import torch
@@ -9,11 +9,11 @@ from .control_affine_system import ControlAffineSystem
 from neural_clbf.systems.utils import Scenario, ScenarioList
 
 
-class Point(ControlAffineSystem):
+class PointInCirWind(ControlAffineSystem):
     """
     Represents a point mass
     The system has state
-        p = [x, y]
+        p = [x, y ]
     representing the x and y position of the point,
     and it has control inputs
         u = [ux, uy]
@@ -61,7 +61,7 @@ class Point(ControlAffineSystem):
 
     @property
     def n_dims(self) -> int:
-        return Point.N_DIMS
+        return PointInCirWind.N_DIMS
 
     @property
     def angle_dims(self) -> List[int]:
@@ -69,7 +69,7 @@ class Point(ControlAffineSystem):
 
     @property
     def n_controls(self) -> int:
-        return Point.N_CONTROLS
+        return PointInCirWind.N_CONTROLS
 
     @property
     def state_limits(self) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -77,10 +77,10 @@ class Point(ControlAffineSystem):
         Return a tuple (upper, lower) describing the expected range of states for this
         system
         """
-        # define upper and lower limits based around the nominal equilibrium input
+
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[Point.X] = 13
-        upper_limit[Point.Y] = 13
+        upper_limit[PointInCirWind.X] = 5
+        upper_limit[PointInCirWind.Y] = 5
 
         lower_limit = -1.0 * upper_limit
 
@@ -92,10 +92,10 @@ class Point(ControlAffineSystem):
         Return a tuple (upper, lower) describing the range of allowable control
         limits for this system
         """
-        # define upper and lower limits based around the nominal equilibrium input
+
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[Point.UX] = 12
-        upper_limit[Point.UY] = 12
+        upper_limit[PointInCirWind.UX] = 10
+        upper_limit[PointInCirWind.UY] = 10
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -103,18 +103,22 @@ class Point(ControlAffineSystem):
     @property
     def goal_point(self):
         return torch.tensor([[ 4.0, 4.0 ]])
-        # return torch.tensor([[ 0.0, 0.0 ]])
+    
+    @property
+    def u_eq(self):
+        a = 4.0 / torch.sqrt(torch.tensor(4.0**2 + 4.0**2))
+        b = -4.0 / torch.sqrt(torch.tensor(4.0**2 + 4.0**2))
+        return torch.tensor([[a, b]])
 
     def safe_mask(self, x):
         """Return the mask of x indicating safe regions for the obstacle task
         args:
             x: a tensor of points in the state space
         """
-        # safe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) > 1.0
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 20.0
+        safe_bound = x.norm(dim=-1) < 5.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -124,7 +128,6 @@ class Point(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        # unsafe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) <= 1.0
         unsafe_mask = x.norm(dim=-1) <= 1.0
 
         return unsafe_mask
@@ -134,7 +137,6 @@ class Point(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-
         goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
 
         return goal_mask.logical_and(self.safe_mask(x))
@@ -153,10 +155,14 @@ class Point(ControlAffineSystem):
         batch_size = x.shape[0]
         f = torch.zeros((batch_size, self.n_dims, 1))
         f = f.type_as(x)
+        
+        a = x[:, 1]
+        b = x[:, 1] - x[:, 0]
+        sqa2b2 = (a.type_as(x) ** 2 + b.type_as(x) ** 2 ).norm(dim=-1)
 
-        # f is a zero vector as nothing should happen when no control input is given
-        f[:, Point.X, 0] = 0
-        f[:, Point.Y, 0] = 0
+        # The system is guided by some vector field
+        f[:, PointInCirWind.X, 0] = a / sqa2b2
+        f[:, PointInCirWind.Y, 0] = b / sqa2b2
 
         return f
 
@@ -175,20 +181,3 @@ class Point(ControlAffineSystem):
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
         return g
-
-    # def u_nominal(
-    #     self, x: torch.Tensor, params: Optional[Scenario] = None
-    # ) -> torch.Tensor:
-    #     """
-    #     Compute the nominal control for the nominal parameters.
-
-    #     args:
-    #         x: bs x self.n_dims tensor of state
-    #         params: the model parameters used
-    #     returns:
-    #         u_nominal: bs x self.n_controls tensor of controls
-    #     """
-    #     # Now perform the operation
-    #     # to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
-    #     # to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
-    #     return torch.zeros((x.shape[0], self.n_controls)).type_as(x) #to_target 

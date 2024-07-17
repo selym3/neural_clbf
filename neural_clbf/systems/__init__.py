@@ -19,6 +19,8 @@ from .point_system import Point
 from .point_wind_system import PointInWind
 from .point_linear import LinearWind
 from .x_point_system import XPoint
+from .point_circular_wind_system import PointInCirWind
+from .xpoint_circular_system import XCirPoint
 
 __all__ = [
     "ControlAffineSystem",
@@ -39,7 +41,9 @@ __all__ = [
     "Point",
     "PointInWind",
     "XPoint",
-    "LinearWind"
+    "LinearWind",
+    "PointInCirWind",
+    "XCirPoint"
 ]
 
 try:

@@ -1,4 +1,4 @@
-"""Define a dymamical system for Point3"""
+"""Define a dymamical system for Point3 in Linear Wind"""
 from typing import Tuple, Optional, List
 
 import torch
@@ -17,7 +17,7 @@ class LinearWind(ControlAffineSystem):
     representing the x and y position of the point,
     and it has control inputs
         u = [ux, uy]
-    representing the vertical control.
+    representing the horizontal and vertical control.
     """
 
     # Number of states and controls
@@ -172,7 +172,7 @@ class LinearWind(ControlAffineSystem):
         batch_size = x.shape[0]
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
-        return g #identity_matrix_batch
+        return g
 
     # def u_nominal(
     #     self, x: torch.Tensor, params: Optional[Scenario] = None
