@@ -157,12 +157,12 @@ class PointInCirWind(ControlAffineSystem):
         f = f.type_as(x)
         
         a = x[:, 1]
-        b = x[:, 1] - x[:, 0]
-        sqa2b2 = (a.type_as(x) ** 2 + b.type_as(x) ** 2 ).norm(dim=-1)
+        b = - x[:, 0]
+        magnitude = torch.sqrt(a ** 2 + b ** 2)
 
         # The system is guided by some vector field
-        f[:, PointInCirWind.X, 0] = a / sqa2b2
-        f[:, PointInCirWind.Y, 0] = b / sqa2b2
+        f[:, PointInCirWind.X, 0] = a / magnitude
+        f[:, PointInCirWind.Y, 0] = b / magnitude
 
         return f
 
