@@ -18,6 +18,7 @@ from .autorally import AutoRally
 from .point_system import Point
 from .point_wind_system import PointInWind
 from .x_point_system import XPoint
+from .simple import Simple
 
 __all__ = [
     "ControlAffineSystem",
@@ -38,6 +39,7 @@ __all__ = [
     "Point",
     "PointInWind",
     "XPoint"
+    "Simple"
 ]
 
 try:

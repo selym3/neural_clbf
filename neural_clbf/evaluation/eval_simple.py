@@ -9,7 +9,8 @@ matplotlib.use('TkAgg')
 def plot_inverted_pendulum():
     # Load the checkpoint file. This should include the experiment suite used during
     # training.
-    log_file = "/home/myles/Programming/neural_clbf/logs/simple_system/first/version_2/checkpoints/epoch=151-step=14361.ckpt"
+    # log_file = "/home/myles/Programming/neural_clbf/logs/simple_system/first/version_2/checkpoints/epoch=151-step=14361.ckpt"
+    log_file = "/home/myles/Programming/neural_clbf/neural_clbf/training/logs/simple_system/first/version_0/checkpoints/epoch=9-step=1409.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
     neural_controller.disable_gurobi = True
     # Update parameters
