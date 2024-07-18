@@ -63,8 +63,8 @@ def setup():
     
     dist.init_process_group(backend='gloo', init_method=f'tcp://{master_addr}:{master_port}', rank=rank, world_size=world_size)
     # if torch.gpu_avaiable ... :
-    device = 0#  rank % torch.cuda.device_count()
-    # torch.cuda.set_device(device)
+    device = rank % torch.cuda.device_count()
+    torch.cuda.set_device(device)
     
 if __name__ == "__main__":
     setup()

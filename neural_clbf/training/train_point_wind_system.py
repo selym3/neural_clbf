@@ -71,7 +71,7 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
+        clbf_hidden_layers=4,
         clbf_hidden_size=64,
         clf_lambda=0.05,
         safe_level=1.0,
@@ -80,7 +80,7 @@ def main(args):
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=30,  # disable new data-gathering
+        epochs_per_episode=100,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -98,7 +98,7 @@ def main(args):
         args, 
         logger=tb_logger,
         reload_dataloaders_every_epoch=True, 
-        max_epochs=100
+        max_epochs=500
     )
 
     # Train
