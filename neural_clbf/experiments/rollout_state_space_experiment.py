@@ -237,8 +237,6 @@ class RolloutStateSpaceExperiment(Experiment):
 
         # Set the color scheme
         sns.set_theme(context="talk", style="white")
-        save_dir = "./plots"
-        save_plots = True
 
         # Figure out how many plots we need (one for the rollout, one for h if logged,
         # and one for V if logged)
@@ -355,10 +353,6 @@ class RolloutStateSpaceExperiment(Experiment):
 
             # Plot a reference line at V = 0
             V_ax.plot([0, results_df.t.max()], [0, 0], color="k")
-        
-        # Save the plot images if requested
-        if save_plots:
-            fig.savefig(f"{save_dir}/rollout_plot.png", bbox_inches="tight")
 
         fig_handle = ("Rollout (state space)", fig)
 
