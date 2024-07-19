@@ -69,7 +69,7 @@ def main(args):
         y_axis_index=Simple.Y,
         x_axis_label="x",
         y_axis_label="y",
-        plot_unsafe_region=False,
+        plot_unsafe_region=True,
     )
     rollout_experiment = RolloutStateSpaceExperiment(
         "Rollout",
