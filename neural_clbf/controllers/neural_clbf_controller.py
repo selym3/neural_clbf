@@ -14,9 +14,11 @@ from neural_clbf.controllers.clf_controller import CLFController
 from neural_clbf.controllers.controller_utils import normalize_with_angles, normalize
 from neural_clbf.datamodules.episodic_datamodule import EpisodicDataModule
 from neural_clbf.experiments import ExperimentSuite
+import torch.distributed as dist
 
 
-class NeuralCLBFController(pl.LightningModule, CLFController):
+
+class NeuralCLBFController(CLFController, pl.LightningModule):
     """
     A neural rCLBF controller. Differs from the CLFController in that it uses a
     neural network to learn the CLF, and it turns it from a CLF to a CLBF by making sure
@@ -85,15 +87,14 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
                 setting this to true will evaluate with CVXPYLayers instead 
                 (to avoid requiring a Gurobi license)
         """
-        super(NeuralCLBFController, self).__init__(
+        super().__init__(
             dynamics_model=dynamics_model,
             scenarios=scenarios,
             experiment_suite=experiment_suite,
             clf_lambda=clf_lambda,
             clf_relaxation_penalty=clf_relaxation_penalty,
             controller_period=controller_period,
-            disable_gurobi=disable_gurobi,
-        )
+            disable_gurobi=disable_gurobi,)
         self.save_hyperparameters()
 
         # Save the provided model
@@ -154,10 +155,18 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
         # self.V_layers["output_linear"] = nn.Linear(self.clbf_hidden_size, 1)
         self.V_nn = nn.Sequential(self.V_layers)
 
+
+        self.outputs = []
+        self.preds = []
+
     def prepare_data(self):
+        print("prepare running on ", dist.get_rank())
         return self.datamodule.prepare_data()
 
     def setup(self, stage: Optional[str] = None):
+        print("setup running on ", dist.get_rank())
+        # if dist.get_rank() > 0: 
+        #     self.prepare_data()
         return self.datamodule.setup(stage)
 
     def train_dataloader(self):
@@ -489,10 +498,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
                 total_loss = total_loss + loss_value
 
         batch_dict = {"loss": total_loss, **component_losses}
-
+        self.outputs.append(batch_dict)
         return batch_dict
 
-    def training_epoch_end(self, outputs):
+    def train_epoch_end(self,outputs):
         """This function is called after every epoch is completed."""
         # Outputs contains a list for each optimizer, and we need to collect the losses
         # from all of them if there is a nested list
@@ -526,6 +535,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             # Log the other losses
             self.log(loss_key + " / train", avg_losses[loss_key], sync_dist=True)
 
+    def on_train_epoch_end(self, *args, **kwargs):
+        self.train_epoch_end(self.outputs)
+        self.outputs.clear()
+
     def validation_step(self, batch, batch_idx):
         """Conduct the validation step for the given batch"""
         # Extract the input and masks from the batch
@@ -554,10 +567,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
         )
 
         batch_dict = {"val_loss": total_loss, **component_losses}
-
+        self.preds.append(batch_dict)
         return batch_dict
 
-    def validation_epoch_end(self, outputs):
+    def _validation_epoch_end(self, outputs):
         """This function is called after every epoch is completed."""
         # Gather up all of the losses for each component from all batches
         losses = {}
@@ -597,7 +610,6 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
             self, self.logger, self.current_epoch
         )
 
-    @pl.core.decorators.auto_move_data
     def simulator_fn(
         self,
         x_init: torch.Tensor,
@@ -622,6 +634,10 @@ class NeuralCLBFController(pl.LightningModule, CLFController):
 
     def on_validation_epoch_end(self):
         """This function is called at the end of every validation epoch"""
+        
+        self._validation_epoch_end(self.preds)
+        self.preds.clear()
+
         # We want to generate new data at the end of every episode
         if self.current_epoch > 0 and self.current_epoch % self.epochs_per_episode == 0:
             if self.penalty_scheduling_rate > 0:

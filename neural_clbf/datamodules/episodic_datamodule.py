@@ -239,6 +239,9 @@ class EpisodicDataModule(pl.LightningDataModule):
         )
 
     def setup(self, stage=None):
+        if self.validation_data is None:
+            self.prepare_data()
+
         """Setup -- nothing to do here"""
         pass
 
@@ -247,7 +250,7 @@ class EpisodicDataModule(pl.LightningDataModule):
         return DataLoader(
             self.training_data,
             batch_size=self.batch_size,
-            num_workers=20#,
+            num_workers=1#,
             #persistent_workers=True,
         )
 
@@ -256,6 +259,6 @@ class EpisodicDataModule(pl.LightningDataModule):
         return DataLoader(
             self.validation_data,
             batch_size=self.batch_size,
-            num_workers=20#,
+            num_workers=1#,
             #persistent_workers=True,
         )

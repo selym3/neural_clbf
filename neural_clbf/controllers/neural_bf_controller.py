@@ -1186,7 +1186,6 @@ class NeuralObsBFController(pl.LightningModule, Controller):
             )
             self.dynamics_model = self.training_dynamics_model
 
-    @pl.core.decorators.auto_move_data
     def simulator_fn(
         self,
         x_init: torch.Tensor,

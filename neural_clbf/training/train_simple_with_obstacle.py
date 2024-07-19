@@ -24,13 +24,14 @@ from neural_clbf.systems import SimpleWithObstacle
 torch.multiprocessing.set_sharing_strategy("file_system")
 
 
-
 start_x = torch.tensor(
     [
-        [0.0, 0.0],
-        [1.0, -1.0],
-        [2.0, 5.0],
-        [5, 0.0]
+        (-6, 1.4),
+        (7.0, 9.0),
+        (-2.1, -1.5),
+        (0.9, -7.25),
+        (4.3, 6.76),
+        (-1.0, 0.0)
     ]
 )
 controller_period = 0.01
@@ -49,12 +50,12 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         domains,
-        trajectories_per_episode=1,  # disable collecting data from trajectories
+        trajectories_per_episode=5,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
-        batch_size=64,
+        batch_size=128,
         quotas={"safe": 0.4, "unsafe": 0.2, "goal": 0.2},
     )
 
@@ -82,9 +83,7 @@ def main(args):
         n_sims_per_start=1,
         t_sim=5.0,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment,
-    # rollout_experiment
-    ])
+    experiment_suite = ExperimentSuite([ V_contour_experiment, rollout_experiment ])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -93,7 +92,7 @@ def main(args):
         data_module,
         experiment_suite,
         clbf_hidden_layers=4,
-        clbf_hidden_size=64,
+        clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
@@ -107,8 +106,8 @@ def main(args):
     )
 
     # Initialize the logger and trainer
-    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config0')
-    trainer = pl.Trainer.from_argparse_args(args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=500)
+    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config1')
+    trainer = pl.Trainer(accelerator=args.accelerator, devices=args.devices, strategy=args.strategy, logger=tb_logger,  check_val_every_n_epoch=1,reload_dataloaders_every_n_epochs=1, max_epochs=500)
 
     # Train
     torch.autograd.set_detect_anomaly(True)
@@ -117,11 +116,28 @@ def main(args):
 
 if __name__ == "__main__":
     
+    import torch.distributed as dist
     import PIL
     PIL.Image.ANTIALIAS = PIL.Image.LANCZOS
 
+    torch.set_float32_matmul_precision('medium')
+
     parser = ArgumentParser()
-    parser = pl.Trainer.add_argparse_args(parser)
+    parser.add_argument("--accelerator", default=None)
+    parser.add_argument("--devices", default=None)
+    parser.add_argument("--strategy", default=None)
+    torch.set_float32_matmul_precision('medium')
     args = parser.parse_args()
+
+    # def setup(rank, world_size):
+    #     os.environ['MASTER_ADDR'] = 'localhost'
+    #     os.environ['MASTER_PORT'] = '12355'
+
+    #     # initialize the process group
+    
+    # rank = dist.get_rank() % 2
+    # world_size = dist.get_world_size()
+    # dist.init_process_group("nccl", rank=rank, world_size=world_size)
+
 
     main(args)
