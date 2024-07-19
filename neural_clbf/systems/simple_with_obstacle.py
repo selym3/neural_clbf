@@ -62,12 +62,21 @@ class SimpleWithObstacle(ControlAffineSystem):
         return (upper_limit, lower_limit)
 
     def safe_mask(self, x: torch.Tensor) -> torch.Tensor:
-        return x.norm(dim=-1) <= 9.0
+        safe_bound = x.norm(dim=-1) <= 10.0
+        safe_mask = self.unsafe_mask(x).logical_not()
+        return safe_bound.logical_and(safe_mask)
+        # safe_mask = x.norm(dim=-1) > 1.0
+        # return safe_bound.logical_and(safe_mask)
+        # safe_mask = (x - torch.tensor([[ 4.0, 4.0 ]]).type_as(x)).norm(dim=-1) > 1.0
+        # return safe.logical_and(self.unsafe_mask(x).logical_not())
+
+        # return safe_bound.logical_and(safe_mask)
 
     def unsafe_mask(self, x: torch.Tensor) -> torch.Tensor:
-        obstacle = torch.tensor([[ 4.0, 4.0 ]])
+        obstacle = torch.tensor([[4.0, 4.0 ]])
         # TODO: in next version, add multiple obstacles
-        return (x - obstacle).norm(dim=-1) <= 1.0
+        return (x - obstacle.type_as(x)).norm(dim=-1) <= 1.0
+        # return torch.zeros_like(x[:, 0], dtype=torch.bool)
 
     def goal_mask(self, x: torch.Tensor) -> torch.Tensor:
         goal_tolerance = 0.1
