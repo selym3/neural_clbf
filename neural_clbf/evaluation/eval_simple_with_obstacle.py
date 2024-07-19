@@ -3,45 +3,56 @@ import matplotlib
 from neural_clbf.controllers import NeuralCLBFController
 import os
 import torch.distributed as dist
+from neural_clbf.systems import SimpleWithObstacle
+from neural_clbf.experiments import RolloutStateSpaceExperiment
 
 # from  
 matplotlib.use('TkAgg')
+
+
+start_x = torch.tensor(
+    [
+        (-6, 1.4),
+        (7.0, 9.0),
+        (-2.1, -1.5),
+        (0.9, -7.25)
+    ]
+)
+
 
 
 def plot_simple():
     # Load the checkpoint file. This should include the experiment suite used during
     # training.
     # log_file = "/home/myles/Programming/neural_clbf/logs/simple_system/first/version_2/checkpoints/epoch=151-step=14361.ckpt"
-    log_file = "/home/myles/Programming/neural_clbf/logs/simple_system/first/version_4/checkpoints/epoch=28-step=2058.ckpt"
+    log_file = "/home/myles/Programming/neural_clbf/logs/simple_system_with_wind/config0/version_0/checkpoints/epoch=155-step=14925.ckpt"
     neural_controller = NeuralCLBFController.load_from_checkpoint(log_file)
     neural_controller.disable_gurobi = True
     # Update parameters
 
     neural_controller.experiment_suite.experiments[0].plot_unsafe_region = True
 
-    neural_controller.experiment_suite.experiments[1].start_x = torch.tensor(
-        [
-            [1.5, 1.5],
-            [0.9, 1.5],
-            [0.3, 1.5],
-            [0.0, 1.5],
-            [-0.3, 1.5],
-            [-0.9, 1.5],
-            [-1.5, 1.5],
-            [1.5, -1.5],
-            [0.9, -1.5],
-            [0.3, -1.5],
-            [0.0, -1.5],
-            [-0.3, -1.5],
-            [-0.9, -1.5],
-            [-1.5, -1.5],
-        ]
-    )
+   
+
 
     # Run the experiments and save the results
     neural_controller.experiment_suite.run_all_and_plot(
         neural_controller, display_plots=True
     )
+
+    rollout_experiment = RolloutStateSpaceExperiment(
+        "Rollout",
+        start_x,
+        SimpleWithObstacle.X,
+        "x",
+        SimpleWithObstacle.Y,
+        "y",
+        scenarios=[{}],
+        n_sims_per_start=1,
+        t_sim=15.0,
+    )
+
+    rollout_experiment.run_and_plot(neural_controller, True)
 
 def setup():
     rank = int(os.environ['RANK'])
