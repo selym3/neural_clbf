@@ -82,7 +82,9 @@ def main(args):
         n_sims_per_start=1,
         t_sim=5.0,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
+    experiment_suite = ExperimentSuite([V_contour_experiment,
+    # rollout_experiment
+    ])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -93,12 +95,12 @@ def main(args):
         clbf_hidden_layers=4,
         clbf_hidden_size=64,
         clf_lambda=0.05,
-        safe_level=10.0,
+        safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
-        num_init_epochs=1,
+        num_init_epochs=0,
         epochs_per_episode=100,
         barrier=True, 
         disable_gurobi= True
