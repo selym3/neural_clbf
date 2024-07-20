@@ -27,10 +27,7 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 start_x = torch.tensor(
     [
-        [0.0, 0.0],
-        [1.0, -1.0],
-        [2.0, 5.0],
-        [5, 0.0]
+        [6.0, 6.0]
     ]
 )
 controller_period = 0.01
@@ -49,12 +46,12 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         domains,
-        trajectories_per_episode=1,  # disable collecting data from trajectories
-        trajectory_length=1,
+        trajectories_per_episode=100,  # disable collecting data from trajectories
+        trajectory_length=5000,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
-        batch_size=64,
+        batch_size=128,
         quotas={"safe": 0.4, "unsafe": 0.2, "goal": 0.2},
     )
 
@@ -93,7 +90,7 @@ def main(args):
         data_module,
         experiment_suite,
         clbf_hidden_layers=4,
-        clbf_hidden_size=64,
+        clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
@@ -107,7 +104,7 @@ def main(args):
     )
 
     # Initialize the logger and trainer
-    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config0')
+    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config5')
     trainer = pl.Trainer.from_argparse_args(args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=500)
 
     # Train
