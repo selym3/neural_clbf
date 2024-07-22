@@ -82,7 +82,7 @@ def main(args):
         "y",
         scenarios=scenarios,
         n_sims_per_start=1,
-        t_sim=5.0,
+        t_sim=20.0,
     )
     experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
 

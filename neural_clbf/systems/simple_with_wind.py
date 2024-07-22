@@ -54,8 +54,8 @@ class SimpleWithWind(ControlAffineSystem):
     @property
     def control_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleWithWind.UX] = 3.0
-        upper_limit[SimpleWithWind.UY] = 3.0
+        upper_limit[SimpleWithWind.UX] = 0.82
+        upper_limit[SimpleWithWind.UY] = 1.41
 
         lower_limit = -1.0 * upper_limit
         
@@ -90,4 +90,4 @@ class SimpleWithWind(ControlAffineSystem):
         batch_size = x.shape[0]
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
-        return g #identity_matrix_batch
+        return g
