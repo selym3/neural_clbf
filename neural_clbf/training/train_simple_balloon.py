@@ -28,10 +28,15 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 start_x = torch.tensor(
     [
         [0.0, 0.0, 0.0],
-        [1.0, 1.0, 1.0],
-        [-1.0, 1.0, 1.0],
-        [1.0, +1.0, 1.0],
-        [-1.0, 1.0, 4.0]
+        [1.0, 1.0, 2.0],
+        [-1.0, 1.0, 2.0],
+        [1.0, +1.0, 4.0],
+        [-1.0, 1.0, 4.0],
+        [2.0, 2.0, 2.0],
+        [-2.0, 2.0, 2.0],
+        [2.0, +2.0, 4.0],
+        [-2.0, 2.0, 4.0]
+        
     ]
 )
 controller_period = 0.01
@@ -92,8 +97,8 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
-        clbf_hidden_size=256,
+        clbf_hidden_layers=4,
+        clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
