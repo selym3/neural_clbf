@@ -81,8 +81,8 @@ class SimpleWithWind(ControlAffineSystem):
         f = f.type_as(x)
 
         # f is a zero vector as nothing should happen when no control input is given
-        f[:, SimpleWithWind.X, 0] = torch.cos(f[:, SimpleWithWind.Y, 0])
-        f[:, SimpleWithWind.Y, 0] = torch.sin(f[:, SimpleWithWind.X, 0])
+        f[:, SimpleWithWind.X, 0] = torch.cos(x[:, SimpleWithWind.Y])
+        f[:, SimpleWithWind.Y, 0] = torch.sin(x[:, SimpleWithWind.X])
 
         return f 
     
