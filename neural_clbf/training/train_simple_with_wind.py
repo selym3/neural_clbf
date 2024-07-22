@@ -18,7 +18,7 @@ from neural_clbf.experiments import (
     CLFContourExperiment,
     RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import SimpleWithObstacle
+from neural_clbf.systems import SimpleWithWind
 
 
 torch.multiprocessing.set_sharing_strategy("file_system")
@@ -27,7 +27,12 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 start_x = torch.tensor(
     [
-        [6.0, 6.0]
+        [6.0, 6.0],
+        [-6.0, -6.0],
+        [6.0, 0.0],
+        [-6.0, 0.0],
+        [0.0, 6.0], 
+        [0.0, -6.0]
     ]
 )
 controller_period = 0.01
@@ -36,7 +41,7 @@ simulation_dt = 0.01
 
 def main(args):
     # Define the dynamics model
-    dynamics_model  = SimpleWithObstacle()
+    dynamics_model  = SimpleWithWind()
 
     # Initialize the DataModule
     domains = [
@@ -46,8 +51,8 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         domains,
-        trajectories_per_episode=100,  # disable collecting data from trajectories
-        trajectory_length=5000,
+        trajectories_per_episode=10,  # disable collecting data from trajectories
+        trajectory_length=500,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
@@ -62,8 +67,8 @@ def main(args):
         "V_Contour",
         domain=[(-12.0, 12.0), (-12.0, 12.0)],
         n_grid=25,
-        x_axis_index=SimpleWithObstacle.X,
-        y_axis_index=SimpleWithObstacle.Y,
+        x_axis_index=SimpleWithWind.X,
+        y_axis_index=SimpleWithWind.Y,
         x_axis_label="x",
         y_axis_label="y",
         plot_unsafe_region=True,
@@ -71,17 +76,15 @@ def main(args):
     rollout_experiment = RolloutStateSpaceExperiment(
         "Rollout",
         start_x,
-        SimpleWithObstacle.X,
+        SimpleWithWind.X,
         "x",
-        SimpleWithObstacle.Y,
+        SimpleWithWind.Y,
         "y",
         scenarios=scenarios,
         n_sims_per_start=1,
         t_sim=5.0,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment,
-    # rollout_experiment
-    ])
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -104,7 +107,7 @@ def main(args):
     )
 
     # Initialize the logger and trainer
-    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_obstacle/", name='config5')
+    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config2')
     trainer = pl.Trainer.from_argparse_args(args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=500)
 
     # Train
