@@ -99,8 +99,8 @@ class SimpleBalloon(ControlAffineSystem):
 
         # f is a zero vector as nothing should happen when no control input is given
         h =  x[:, SimpleBalloon.Z]
-        f[:, SimpleBalloon.X, 0] = 0.1 * torch.cos(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
-        f[:, SimpleBalloon.Y, 0] = 0.1 * torch.sin(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
+        f[:, SimpleBalloon.X, 0] = 0.5 * torch.cos(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
+        f[:, SimpleBalloon.Y, 0] = 0.5 * torch.sin(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
 
         return f 
     
