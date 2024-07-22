@@ -107,7 +107,12 @@ def main(args):
     )
 
     # Initialize the logger and trainer
-    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name='config2')
+    current_git_hash = (
+        subprocess.check_output(["git", "rev-parse", "--short", "HEAD"])
+        .decode("ascii")
+        .strip()
+    )
+    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_system_with_wind/", name=f'commit_{current_git_hash}')
     trainer = pl.Trainer.from_argparse_args(args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=500)
 
     # Train
