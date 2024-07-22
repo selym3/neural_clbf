@@ -54,8 +54,8 @@ class SimpleWithWind(ControlAffineSystem):
     @property
     def control_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleWithWind.UX] = 1.0
-        upper_limit[SimpleWithWind.UY] = 1.0
+        upper_limit[SimpleWithWind.UX] = 3.0
+        upper_limit[SimpleWithWind.UY] = 3.0
 
         lower_limit = -1.0 * upper_limit
         
