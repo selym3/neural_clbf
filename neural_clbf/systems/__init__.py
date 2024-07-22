@@ -21,6 +21,7 @@ from .x_point_system import XPoint
 from .simple import Simple
 from .simple_with_obstacle import SimpleWithObstacle
 from .simple_with_wind import SimpleWithWind
+from .simple_balloon import SimpleBalloon
 
 __all__ = [
     "ControlAffineSystem",
@@ -43,7 +44,8 @@ __all__ = [
     "XPoint",
     "Simple",
     "SimpleWithObstacle",
-    "SimpleWithWind"
+    "SimpleWithWind",
+    "SimpleBalloon"
 ]
 
 try:
