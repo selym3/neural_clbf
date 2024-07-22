@@ -102,7 +102,7 @@ def main(args):
         penalty_scheduling_rate=0,
         num_init_epochs=0,
         epochs_per_episode=100,
-        barrier=True, 
+        barrier=False, 
         disable_gurobi= True
     )
 
