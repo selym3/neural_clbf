@@ -39,7 +39,7 @@ start_x = torch.tensor(
         
     ]
 )
-controller_period = 0.01
+controller_period = 0.05
 simulation_dt = 0.01
 
 
@@ -73,9 +73,9 @@ def main(args):
         domain=[(-7.0, 7.0), (-7.0, 7.0)],
         n_grid=25,
         x_axis_index=SimpleBalloon.X,
-        y_axis_index=SimpleBalloon.Y,
+        y_axis_index=SimpleBalloon.Z,
         x_axis_label="x",
-        y_axis_label="y",
+        y_axis_label="z",
         plot_unsafe_region=True,
     )
     rollout_experiment = RolloutStateSpaceExperiment(
@@ -83,8 +83,8 @@ def main(args):
         start_x,
         SimpleBalloon.X,
         "x",
-        SimpleBalloon.Y,
-        "y",
+        SimpleBalloon.Z,
+        "z",
         scenarios=scenarios,
         n_sims_per_start=1,
         t_sim=20.0,
@@ -99,7 +99,7 @@ def main(args):
         experiment_suite,
         clbf_hidden_layers=4,
         clbf_hidden_size=128,
-        clf_lambda=0.05,
+        clf_lambda=0.01,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,

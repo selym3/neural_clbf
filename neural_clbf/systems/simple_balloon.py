@@ -70,7 +70,7 @@ class SimpleBalloon(ControlAffineSystem):
         y = vectors[:, SimpleBalloon.Y]
         z = vectors[:, SimpleBalloon.Z]
 
-        # Check if (x, y) is within a circle of radius 10
+        # Check if (x, y) is within a circle of radius 5
         within_circle = x**2 + y**2 <= 25
 
         # Check if z is between 0 and 2*pi
@@ -82,7 +82,23 @@ class SimpleBalloon(ControlAffineSystem):
         return result.type_as(x).bool()
 
     def unsafe_mask(self, x: torch.Tensor) -> torch.Tensor:
+        
         return torch.zeros_like(x[:, 0], dtype=torch.bool)
+        # # Extract x, y, z components
+        # x_comp = x[:, SimpleBalloon.X]
+        # y_comp = x[:, SimpleBalloon.Y]
+        # z_comp = x[:, SimpleBalloon.Z]
+
+        # # Check if (x, y) is within a circle of radius 10
+        # within_circle = x_comp**2 + y_comp**2 > 100
+
+        # # Check if z is outside the range 0 and 2*pi
+        # outside_z_range = (z_comp < -5) | (z_comp > 2 * 3.1415+10)
+
+        # # Combine conditions to find unsafe states
+        # unsafe = within_circle | outside_z_range
+
+        # return unsafe
 
     @property
     def u_eq(self):
@@ -101,8 +117,10 @@ class SimpleBalloon(ControlAffineSystem):
         h =  x[:, SimpleBalloon.Z]
         # f[:, SimpleBalloon.X, 0] = 0.1 * torch.cos(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
         # f[:, SimpleBalloon.Y, 0] = 0.1 * torch.sin(h) * (torch.tanh(1000.0 * h - 20.0) + 1.0)
-        f[:, SimpleBalloon.X, 0] = 0.1 * torch.cos(h) * (torch.tanh(500.0 * h - 10.0) + 1.0)
-        f[:, SimpleBalloon.Y, 0] = 0.1 * torch.sin(h) * (torch.tanh(500.0 * h - 10.0) + 1.0)
+        # f[:, SimpleBalloon.X, 0] = 0.1 * torch.cos(h) * (torch.tanh(500.0 * h - 10.0) + 1.0)
+        # f[:, SimpleBalloon.Y, 0] = 0.1 * torch.sin(h) * (torch.tanh(500.0 * h - 10.0) + 1.0)
+        f[:, SimpleBalloon.X, 0] = 0.1 * torch.cos(h) * (torch.tanh(10.0 * h - 2.0) + 1.0)
+        f[:, SimpleBalloon.Y, 0] = 0.1 * torch.sin(h) * (torch.tanh(10.0 * h - 2.0) + 1.0)
 
         return f 
     
