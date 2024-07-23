@@ -105,7 +105,7 @@ class SimpleBalloon(ControlAffineSystem):
         return torch.tensor([[ 0.0 ]])
 
     def goal_mask(self, x: torch.Tensor) -> torch.Tensor:
-        goal_tolerance = 0.1
+        goal_tolerance = 1
         return x.norm(dim=-1) <= goal_tolerance
 
     def _f(self, x: torch.Tensor, params):
