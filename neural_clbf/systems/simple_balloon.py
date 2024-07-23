@@ -48,7 +48,7 @@ class SimpleBalloon(ControlAffineSystem):
         upper_limit = torch.ones(self.n_dims)
         upper_limit[SimpleBalloon.X] = 10.0
         upper_limit[SimpleBalloon.Y] = 10.0
-        upper_limit[SimpleBalloon.Z] = 3.1415 * 2
+        upper_limit[SimpleBalloon.Z] = 10.0
 
         lower_limit = -1.0 * upper_limit
         lower_limit[SimpleBalloon.Z] = 0.0
@@ -58,7 +58,7 @@ class SimpleBalloon(ControlAffineSystem):
     @property
     def control_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleBalloon.UZ] = 10.0
+        upper_limit[SimpleBalloon.UZ] = 25.0
 
         lower_limit = -1.0 * upper_limit
         
@@ -74,7 +74,7 @@ class SimpleBalloon(ControlAffineSystem):
         within_circle = x**2 + y**2 <= 100
 
         # Check if z is between 0 and 2*pi
-        within_z_range = (z >= 0) & (z <= 2 * 3.1415)
+        within_z_range = (z >= 0) & (z <= 10.0)
 
         # Both conditions must be true
         result = within_circle & within_z_range
