@@ -116,5 +116,35 @@ class SimpleBalloon(ControlAffineSystem):
         return values.type_as(x)
 
     def u_nominal(self, x, params=None):
-        return torch.zeros((x.shape[0], self.n_controls)).type_as(x)
-    
+        batch_size = x.shape[0]
+        goal_point = self.goal_point.type_as(x)
+
+        # Generate candidate z values
+        candidate_z = torch.linspace(0, 2 * np.pi, 100).type_as(x)
+        candidate_z = candidate_z.unsqueeze(0).repeat(batch_size, 1)  # Shape: (batch_size, 100)
+
+        # Compute f_x and f_y for all candidate z values
+        f_x = 0.1 * torch.cos(candidate_z) * (torch.tanh(500.0 * candidate_z - 10.0) + 1.0)
+        f_y = 0.1 * torch.sin(candidate_z) * (torch.tanh(500.0 * candidate_z - 10.0) + 1.0)
+
+        # Compute the direction to the goal
+        direction_to_goal = goal_point[:, :2].unsqueeze(1) - x[:, :2].unsqueeze(1)
+
+        # Compute the push towards the goal for all candidate z values
+        push = f_x * direction_to_goal[:, :, SimpleBalloon.X] + f_y * direction_to_goal[:, :, SimpleBalloon.Y]  # Shape: (batch_size, 100)
+
+        # Find the best z that provides the maximum push
+        max_push, best_z_indices = torch.max(push, dim=1)
+        best_z = candidate_z[torch.arange(batch_size), best_z_indices]  # Shape: (batch_size,)
+
+        # Calculate the difference between current z and the best z
+        z_diff = best_z - x[:, SimpleBalloon.Z]
+
+        # Set this as the nominal control input
+        u_nominal = z_diff.unsqueeze(1)  # Ensure u_nominal is of shape (batch_size, 1)
+
+        # Clip u_nominal to be within the control limits
+        control_limits = self.control_limits
+        u_nominal = torch.clamp(u_nominal, control_limits[1][self.UZ], control_limits[0][self.UZ])
+
+        return u_nominal
