@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from copy import copy
 import subprocess
-# from pytorch_lightning.plugins import DDPPlugin
 
 import PIL.Image
 import numpy as np
@@ -19,29 +18,46 @@ from neural_clbf.experiments import (
     CLFContourExperiment,
     RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import PointInWind, LinearWind
+from neural_clbf.systems import SimpleBalloon
+
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
+
+
+start_x = torch.tensor(
+    [
+        [0.0, 0.0, 0.0],
+        [1.0, 1.0, 2.0],
+        [-1.0, 1.0, 2.0],
+        [1.0, +1.0, 4.0],
+        [-1.0, 1.0, 4.0],
+        [2.0, 2.0, 2.0],
+        [-2.0, 2.0, 2.0],
+        [2.0, +2.0, 4.0],
+        [-2.0, 2.0, 4.0]
+        
+    ]
+)
 controller_period = 0.01
 simulation_dt = 0.01
 
 
 def main(args):
     # Define the dynamics model
-    nominal_params = {}
-    dynamics_model = PointInWind(nominal_params, dt=simulation_dt, controller_dt=controller_period)
+    dynamics_model  = SimpleBalloon()
 
     # Initialize the DataModule
-    initial_domain = [
-        (-5, 5),  # x
-        (-5, 5),  # y
+    domains = [
+        (-5.0, 5.0),  # x
+        (-5.0, 5.0),  # y
+        (0.0, 6.283) # z
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
-        initial_domain,
+        domains,
         trajectories_per_episode=10,  # disable collecting data from trajectories
-        trajectory_length=3,
+        trajectory_length=500,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
@@ -54,15 +70,26 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-10.0, 10.0), (-10.0, 10.0)],
+        domain=[(-7.0, 7.0), (-7.0, 7.0)],
         n_grid=25,
-        x_axis_index=PointInWind.X,
-        y_axis_index=PointInWind.Y,
-        x_axis_label="$x$",
-        y_axis_label="$y$",
+        x_axis_index=SimpleBalloon.X,
+        y_axis_index=SimpleBalloon.Y,
+        x_axis_label="x",
+        y_axis_label="y",
         plot_unsafe_region=True,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment])
+    rollout_experiment = RolloutStateSpaceExperiment(
+        "Rollout",
+        start_x,
+        SimpleBalloon.X,
+        "x",
+        SimpleBalloon.Y,
+        "y",
+        scenarios=scenarios,
+        n_sims_per_start=1,
+        t_sim=20.0,
+    )
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -70,17 +97,17 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=3,
+        clbf_hidden_layers=4,
         clbf_hidden_size=128,
-        clf_lambda=0.01,
+        clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=20,  # disable new data-gathering
-        barrier=True,  # disable fitting level sets to a safe/unsafe boundary
+        epochs_per_episode=100,
+        barrier=True, 
         disable_gurobi= True
     )
 
@@ -90,15 +117,8 @@ def main(args):
         .decode("ascii")
         .strip()
     )
-    tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/point_wind_system/", name=f"commit_{current_git_hash}"
-    )
-    trainer = pl.Trainer.from_argparse_args(
-        args, 
-        logger=tb_logger,
-        reload_dataloaders_every_epoch=True, 
-        max_epochs=70
-    )
+    tb_logger = pl_loggers.TensorBoardLogger("logs/simple_balloon/", name=f'commit_{current_git_hash}')
+    trainer = pl.Trainer.from_argparse_args(args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=500)
 
     # Train
     torch.autograd.set_detect_anomaly(True)

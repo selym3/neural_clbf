@@ -72,7 +72,7 @@ def main(args):
         experiment_suite,
         clbf_hidden_layers=2,
         clbf_hidden_size=128,
-        clf_lambda=0.05,
+        clf_lambda=0.01,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,

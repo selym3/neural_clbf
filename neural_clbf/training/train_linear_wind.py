@@ -19,7 +19,7 @@ from neural_clbf.experiments import (
     CLFContourExperiment,
     RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import PointInWind, LinearWind
+from neural_clbf.systems import LinearWind
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -30,7 +30,7 @@ simulation_dt = 0.01
 def main(args):
     # Define the dynamics model
     nominal_params = {}
-    dynamics_model = PointInWind(nominal_params, dt=simulation_dt, controller_dt=controller_period)
+    dynamics_model = LinearWind(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
     # Initialize the DataModule
     initial_domain = [
@@ -40,8 +40,8 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_domain,
-        trajectories_per_episode=10,  # disable collecting data from trajectories
-        trajectory_length=3,
+        trajectories_per_episode=5,  # disable collecting data from trajectories
+        trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
         val_split=0.1,
@@ -56,8 +56,8 @@ def main(args):
         "V_Contour",
         domain=[(-10.0, 10.0), (-10.0, 10.0)],
         n_grid=25,
-        x_axis_index=PointInWind.X,
-        y_axis_index=PointInWind.Y,
+        x_axis_index=LinearWind.X,
+        y_axis_index=LinearWind.Y,
         x_axis_label="$x$",
         y_axis_label="$y$",
         plot_unsafe_region=True,
@@ -70,9 +70,9 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=3,
+        clbf_hidden_layers=2,
         clbf_hidden_size=128,
-        clf_lambda=0.01,
+        clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
@@ -91,7 +91,7 @@ def main(args):
         .strip()
     )
     tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/point_wind_system/", name=f"commit_{current_git_hash}"
+        "logs/point_linear_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
         args, 

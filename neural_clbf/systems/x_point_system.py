@@ -93,7 +93,7 @@ class XPoint(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[XPoint.UX] = 15
+        upper_limit[XPoint.UX] = 15 #100 #30 #15
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)

@@ -1,28 +1,27 @@
-"""Define a dymamical system for Point3 in Unstable Wind"""
+"""Define a dymamical system for Point in Simple Wind without Obstacle"""
 from typing import Tuple, Optional, List
 
 import torch
-import numpy as np
 import torch.nn.functional
 
 from .control_affine_system import ControlAffineSystem
 from neural_clbf.systems.utils import Scenario, ScenarioList
 
 
-class PointInWind(ControlAffineSystem):
+class XPointSim(ControlAffineSystem):
     """
     Represents a point mass
     The system has state
-        p = [x, y ]
+        p = [x, y]
     representing the x and y position of the point,
     and it has control inputs
-        u = [ux, uy]
-    representing the horizontal and vertical control.
+        u = [ux]
+    representing the horizontal control.
     """
 
     # Number of states and controls
     N_DIMS = 2
-    N_CONTROLS = 2
+    N_CONTROLS = 1
 
     # State indices
     X = 0
@@ -30,7 +29,6 @@ class PointInWind(ControlAffineSystem):
 
     # Control indices
     UX = 0
-    UY = 1
 
     def __init__(
         self,
@@ -61,7 +59,7 @@ class PointInWind(ControlAffineSystem):
 
     @property
     def n_dims(self) -> int:
-        return PointInWind.N_DIMS
+        return XPointSim.N_DIMS
 
     @property
     def angle_dims(self) -> List[int]:
@@ -69,7 +67,7 @@ class PointInWind(ControlAffineSystem):
 
     @property
     def n_controls(self) -> int:
-        return PointInWind.N_CONTROLS
+        return XPointSim.N_CONTROLS
 
     @property
     def state_limits(self) -> Tuple[torch.Tensor, torch.Tensor]:
@@ -77,10 +75,10 @@ class PointInWind(ControlAffineSystem):
         Return a tuple (upper, lower) describing the expected range of states for this
         system
         """
-
+        # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[PointInWind.X] = 5
-        upper_limit[PointInWind.Y] = 5
+        upper_limit[XPointSim.X] = 5
+        upper_limit[XPointSim.Y] = 5
 
         lower_limit = -1.0 * upper_limit
 
@@ -92,31 +90,30 @@ class PointInWind(ControlAffineSystem):
         Return a tuple (upper, lower) describing the range of allowable control
         limits for this system
         """
-
+        # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[PointInWind.UX] = 15 #100 #30 #15
-        upper_limit[PointInWind.UY] = 15 #100 #30 #15
+        upper_limit[XPointSim.UX] = 10 #3 #100 #30 #15
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
     
     @property
     def goal_point(self):
-        return torch.tensor([[ 4.0, 4.0 ]])
+        return torch.tensor([[ 0.0, 0.0 ]])
     
     @property
     def u_eq(self):
-        return torch.tensor([[-1.0, 0.0]])
+        return torch.tensor([[ -1.0 ]])
+    
 
     def safe_mask(self, x):
-        """Return the mask of x indicating safe regions for the obstacle task
+        """Return the mask of x indicating safe region
         args:
             x: a tensor of points in the state space
         """
-        safe_mask = x.norm(dim=-1) > 1.0
-        
+        safe_mask = x.norm(dim=-1) >= 0.0
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 5.0
+        safe_bound = x.norm(dim=-1) < 6.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -126,7 +123,7 @@ class PointInWind(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        unsafe_mask = x.norm(dim=-1) <= 1.0
+        unsafe_mask = x.norm(dim=-1) >= 6.0
 
         return unsafe_mask
 
@@ -153,15 +150,10 @@ class PointInWind(ControlAffineSystem):
         batch_size = x.shape[0]
         f = torch.zeros((batch_size, self.n_dims, 1))
         f = f.type_as(x)
-
-        a = x[:, 1]
-        b = x[:, 1] - x[:, 0]
-        
-        magnitude = torch.sqrt(a**2 + b**2)
         
         # Apply scaling
-        f[:, PointInWind.X, 0] = a / magnitude
-        f[:, PointInWind.Y, 0] = b / magnitude
+        f[:, XPointSim.X, 0] = torch.cos(x[:, 1])
+        f[:, XPointSim.Y, 0] = torch.sin(x[:, 0])
 
         return f
 
@@ -180,19 +172,3 @@ class PointInWind(ControlAffineSystem):
         g = torch.eye(self.n_dims, self.n_controls).unsqueeze(0).repeat(batch_size, 1, 1).type_as(x)
 
         return g
-
-    # def u_nominal(
-    #     self, x: torch.Tensor, params: Optional[Scenario] = None
-    # ) -> torch.Tensor:
-    #     """
-    #     Compute the nominal control for the nominal parameters.
-
-    #     args:
-    #         x: bs x self.n_dims tensor of state
-    #         params: the model parameters used
-    #     returns:
-    #         u_nominal: bs x self.n_controls tensor of controls
-    #     """
-    #     to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
-    #     to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
-    #     return to_target # torch.zeros((x.shape[0], self.n_controls))

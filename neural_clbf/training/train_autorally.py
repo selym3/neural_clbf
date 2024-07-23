@@ -99,6 +99,7 @@ def main(args):
         barrier=True,
         add_nominal=True,
         normalize_V_nominal=True,
+        disable_gurobi= True,
     )
 
     # Initialize the logger and trainer

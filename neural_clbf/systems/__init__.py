@@ -21,6 +21,8 @@ from .point_linear import LinearWind
 from .x_point_system import XPoint
 from .point_circular_wind_system import PointInCirWind
 from .xpoint_circular_system import XCirPoint
+from .xpoint_simple_wind import XPointSim
+from .simple_balloon import SimpleBalloon
 
 __all__ = [
     "ControlAffineSystem",
@@ -43,7 +45,9 @@ __all__ = [
     "XPoint",
     "LinearWind",
     "PointInCirWind",
-    "XCirPoint"
+    "XCirPoint",
+    "XPointSim",
+    "SimpleBalloon",
 ]
 
 try:

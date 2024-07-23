@@ -145,6 +145,11 @@ class ControlAffineSystem(ABC):
             # Define cost matrices as identity
             Q = np.eye(self.n_dims)
             R = np.eye(self.n_controls)
+            
+            print("A ", A)
+            print("B ", B)
+            print("Q ", Q)
+            print("R ", R)
 
             # Get feedback matrix
             K_np = lqr(A, B, Q, R)

@@ -126,6 +126,7 @@ venv.bak/
 
 # Project-specific
 logs/
+logs_history/
 neural_clbf/systems/aerobench
 *devel*
 

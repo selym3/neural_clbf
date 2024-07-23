@@ -198,7 +198,7 @@ class Scene:
             # Sweep through the field of view, checking for an intersection
             # out to max_distance
             for ray_idx in range(num_rays):
-                ray_start = q[:2].detach().numpy()  # start at the agent (x, y)
+                ray_start = q[:2].detach().cpu().numpy()  # start at the agent (x, y)
                 ray_direction = np.array(
                     [
                         np.cos(q[2].detach().item() + angles[ray_idx]),
@@ -258,7 +258,8 @@ class Scene:
                     [
                         [torch.cos(q[2]), torch.sin(q[2])],
                         [-torch.sin(q[2]), torch.cos(q[2])],
-                    ]
+                    ],
+                    device=qs.device,
                 )
                 contact_pt_agent = torch.matmul(rotation_mat, contact_offset_world)
 

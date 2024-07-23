@@ -1,7 +1,6 @@
 from argparse import ArgumentParser
 from copy import copy
 import subprocess
-# from pytorch_lightning.plugins import DDPPlugin
 
 import PIL.Image
 import numpy as np
@@ -16,10 +15,10 @@ from neural_clbf.datamodules.episodic_datamodule import (
 )
 from neural_clbf.experiments import (
     ExperimentSuite,
-    CLFContourExperiment,
-    RolloutStateSpaceExperiment
+    CLFContourExperiment
 )
-from neural_clbf.systems import PointInWind, LinearWind
+from neural_clbf.systems import XPointSim
+
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
@@ -30,7 +29,7 @@ simulation_dt = 0.01
 def main(args):
     # Define the dynamics model
     nominal_params = {}
-    dynamics_model = PointInWind(nominal_params, dt=simulation_dt, controller_dt=controller_period)
+    dynamics_model = XPointSim(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
     # Initialize the DataModule
     initial_domain = [
@@ -56,8 +55,8 @@ def main(args):
         "V_Contour",
         domain=[(-10.0, 10.0), (-10.0, 10.0)],
         n_grid=25,
-        x_axis_index=PointInWind.X,
-        y_axis_index=PointInWind.Y,
+        x_axis_index=XPointSim.X,
+        y_axis_index=XPointSim.Y,
         x_axis_label="$x$",
         y_axis_label="$y$",
         plot_unsafe_region=True,
@@ -72,14 +71,14 @@ def main(args):
         experiment_suite,
         clbf_hidden_layers=3,
         clbf_hidden_size=128,
-        clf_lambda=0.01,
+        clf_lambda=0.05,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=20,  # disable new data-gathering
+        epochs_per_episode=60,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -91,13 +90,10 @@ def main(args):
         .strip()
     )
     tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/point_wind_system/", name=f"commit_{current_git_hash}"
+        "logs/xpoint_sim_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, 
-        logger=tb_logger,
-        reload_dataloaders_every_epoch=True, 
-        max_epochs=70
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=70
     )
 
     # Train

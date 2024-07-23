@@ -464,8 +464,9 @@ class NeuralObsBFController(pl.LightningModule, Controller):
 
         # Combine the control options with the states so we can run the lookahead in
         # a batch
-        x_indices = torch.arange(x.shape[0])
-        u_indices = torch.arange(u_options.shape[0])
+        device = x.device
+        x_indices = torch.arange(x.shape[0]).to(device)
+        u_indices = torch.arange(u_options.shape[0]).to(device)
         idxs = torch.cartesian_prod(x_indices, u_indices)
 
         # Run the approximate lookahead to get the next set of states and observations,
@@ -535,6 +536,14 @@ class NeuralObsBFController(pl.LightningModule, Controller):
         # where the constraint is relaxed to a cost with a large penalty
         Q = 1.0
         R = 0.01
+        
+        device = x.device
+        u_options = u_options.type_as(x)
+        x_nexts = x_nexts.type_as(x)
+        o_nexts = o_nexts.type_as(x)
+        h_nexts = h_nexts.type_as(x)
+        V_nexts = V_nexts.type_as(x)
+        idxs = idxs.to(device)
 
         # We now want to track which element of the search grid is best for each
         # row of the batched input. Create a tensor of costs for each option in each
@@ -600,7 +609,9 @@ class NeuralObsBFController(pl.LightningModule, Controller):
                     [
                         [torch.cos(x[0, 2]), -torch.sin(x[0, 2])],
                         [torch.sin(x[0, 2]), torch.cos(x[0, 2])],
-                    ]
+                    ],
+                    device=device,
+                    
                 )
                 lidar_pts = rotation_mat @ lidar_pts
                 lidar_pts[0, :] += x[0, 0]
@@ -614,7 +625,8 @@ class NeuralObsBFController(pl.LightningModule, Controller):
                     [
                         [torch.cos(x_next[0, 2]), -torch.sin(x_next[0, 2])],
                         [torch.sin(x_next[0, 2]), torch.cos(x_next[0, 2])],
-                    ]
+                    ],
+                    device=device,
                 )
                 lidar_pts = rotation_mat @ lidar_pts
                 lidar_pts[0, :] += x_next[0, 0]
@@ -635,6 +647,8 @@ class NeuralObsBFController(pl.LightningModule, Controller):
 
         # Clamp to make sure we don't violate any control limits
         upper_limit, lower_limit = self.dynamics_model.control_limits
+        upper_limit = upper_limit.type_as(x)
+        lower_limit = lower_limit.type_as(x)
         u = torch.clamp(u, lower_limit, upper_limit)
 
         # Any control inputs that are zero indicate a deadlock, so we should
@@ -732,7 +746,7 @@ class NeuralObsBFController(pl.LightningModule, Controller):
         # batch.
         batch_size = x.shape[0]
         num_options = u_options.shape[0]
-        costs = torch.zeros(batch_size * num_options, 1)
+        costs = torch.zeros(batch_size * num_options, 1).type_as(x)
 
         # Add the barrier constraint penalty
         costs.add_(
@@ -844,9 +858,10 @@ class NeuralObsBFController(pl.LightningModule, Controller):
         chosen_option_idx = torch.multinomial(selection_probabilities, 1).reshape(-1)
         _, chosen_option_idx = torch.max(selection_probabilities, dim=-1)
 
+        device = x.device
         # Extract the control and cost for this option
-        u = u_options[chosen_option_idx].reshape(-1, 1, u_options.shape[1])
-        u_cost = costs[torch.arange(batch_size) * num_options + chosen_option_idx, :]
+        u = u_options[chosen_option_idx].reshape(-1, 1, u_options.shape[1]).to(device)
+        u_cost = costs[torch.arange(batch_size).to(device) * num_options + chosen_option_idx, :]
 
         if self.debug_mode_exploratory and torch.allclose(
             self.controller_mode, torch.ones_like(self.controller_mode)
@@ -859,11 +874,13 @@ class NeuralObsBFController(pl.LightningModule, Controller):
 
         # Clamp to make sure we don't violate any control limits
         upper_limit, lower_limit = self.dynamics_model.control_limits
+        lower_limit = lower_limit.type_as(x)
+        upper_limit = upper_limit.type_as(x)
         u = torch.clamp(u, lower_limit, upper_limit)
 
         # Once in the exploratory mode, we can transition back to the goal seeking
         # mode once the Lyapunov function value has decreased below the hit point value
-        V_next = V_nexts[torch.arange(batch_size) * num_options + chosen_option_idx, :]
+        V_next = V_nexts[torch.arange(batch_size).to(device) * num_options + chosen_option_idx, :]
 
         switch_to_goal_seeking = (
             V_next < (1 - self.V_lambda) * self.hit_points_V
