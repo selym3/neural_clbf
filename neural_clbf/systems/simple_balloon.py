@@ -114,5 +114,7 @@ class SimpleBalloon(ControlAffineSystem):
         return values.type_as(x)
 
     def u_nominal(self, x, params=None):
-        return torch.zeros((x.shape[0], self.n_controls)).type_as(x)
+        z = x[:, SimpleBalloon.Z].type_as(x)
+        z_target = torch.zeros((x.shape[0], self.n_controls)).type_as(x)
+        return z_target - z
     
