@@ -106,7 +106,7 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         # f is a zero vector as nothing should happen when no control input is given
         h =  x[:, SimpleBalloon2d.Z]
-        f[:, SimpleBalloon2d.X, 0] = -0.1 * torch.sin(h)
+        f[:, SimpleBalloon2d.X, 0] = -0.1 * (h)
         f[:, SimpleBalloon2d.Z, 0] = 0.0
 
         return f 
