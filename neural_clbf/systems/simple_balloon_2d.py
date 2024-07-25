@@ -113,7 +113,6 @@ class SimpleBalloon2d(ControlAffineSystem):
         batch_size = x.shape[0]
         values = torch.zeros((batch_size, self.n_dims, self.n_controls))
         values[:, SimpleBalloon2d.X, 0] = 0
-        values[:, SimpleBalloon2d.Y, 0] = 0
         values[:, SimpleBalloon2d.Z, 0] = 1.0
 
         return values.type_as(x)
