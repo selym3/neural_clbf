@@ -22,6 +22,7 @@ from .simple import Simple
 from .simple_with_obstacle import SimpleWithObstacle
 from .simple_with_wind import SimpleWithWind
 from .simple_balloon import SimpleBalloon
+from .simple_balloon_2d import SimpleBalloon2d
 
 __all__ = [
     "ControlAffineSystem",
@@ -45,7 +46,8 @@ __all__ = [
     "Simple",
     "SimpleWithObstacle",
     "SimpleWithWind",
-    "SimpleBalloon"
+    "SimpleBalloon",
+    "SimpleBalloon2d"
 ]
 
 try:
