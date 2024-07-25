@@ -27,11 +27,13 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 start_x = torch.tensor(
     [
-        # [0.0, 0.0],
-        # [1.0, 2.0],
-        # [-1.0, 2.0],
-        # [1.0,  4.0],
-        # [-1.0, 4.0],
+        [0.0, 0.0],
+        [1.0, 2.0],
+        [-1.0, 2.0],
+        [1.0,  4.0],
+        [-1.0, 4.0],
+        [4.0,  4.0],
+        [-4.0, 4.0],
         # [2.0, 2.0],
         # [-2.0, 2.0],
         # [2.0,  4.0],
@@ -49,8 +51,8 @@ def main(args):
 
     # Initialize the DataModule
     domains = [
-        (-10.0, 10.0),  # x
-        (0.0, 10.0),  # z
+        (-14.0, 14.0),  # x
+        (-4, 14.0),  # z
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -86,9 +88,12 @@ def main(args):
         "z",
         scenarios=scenarios,
         n_sims_per_start=1,
-        t_sim=20.0,
+        t_sim=10.0,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment])
+    experiment_suite = ExperimentSuite([
+        V_contour_experiment, 
+        rollout_experiment
+        ])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
