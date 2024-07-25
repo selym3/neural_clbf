@@ -109,7 +109,7 @@ def main(args):
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
-        num_init_epochs=4,
+        num_init_epochs=0,
         epochs_per_episode=100,
         barrier=True, 
         disable_gurobi= True
