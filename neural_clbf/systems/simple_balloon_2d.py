@@ -105,8 +105,9 @@ class SimpleBalloon2d(ControlAffineSystem):
         f = f.type_as(x)
 
         # f is a zero vector as nothing should happen when no control input is given
+        l = x[:, SimpleBalloon2d.X]
         h =  x[:, SimpleBalloon2d.Z]
-        f[:, SimpleBalloon2d.X, 0] = -0.1 * (h)
+        f[:, SimpleBalloon2d.X, 0] = -0.1 * l
         f[:, SimpleBalloon2d.Z, 0] = 0.0
 
         return f 
