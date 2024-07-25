@@ -45,17 +45,18 @@ class SimpleBalloon2d(ControlAffineSystem):
     @property
     def state_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleBalloon2d.X] = 20.0
-        upper_limit[SimpleBalloon2d.Z] = 20.0
+        upper_limit[SimpleBalloon2d.X] = 10#20.0
+        upper_limit[SimpleBalloon2d.Z] = 10#20.0
 
         lower_limit = -1.0 * upper_limit
+        lower_limit[SimpleBalloon2d.Z] = 0.0
 
         return (upper_limit, lower_limit)
 
     @property
     def control_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleBalloon2d.UZ] = 2.0
+        upper_limit[SimpleBalloon2d.UZ] = 20.0
 
         lower_limit = -1.0 * upper_limit
         
@@ -78,17 +79,17 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         return result.type_as(x).bool()
 
-    def unsafe_mask(self, x: torch.Tensor) -> torch.Tensor:
-        x = vectors[:, SimpleBalloon2d.X]
-        z = vectors[:, SimpleBalloon2d.Z]
+    def unsafe_mask(self, vectors: torch.Tensor) -> torch.Tensor:
+        # x = vectors[:, SimpleBalloon2d.X]
+        # z = vectors[:, SimpleBalloon2d.Z]
 
-        outside_circle = x**2 >= 12**2
+        # outside_circle = x**2 >= 12**2
 
-        outside_z_range = (z <= -2) & (z >= 12)
+        # outside_z_range = (z <= -2) & (z >= 12)
 
-        result = outside_circle | outside_z_range
+        # result = outside_circle | outside_z_range
 
-        return result
+        return torch.zeros_like(vectors[:, 0], dtype=torch.bool) #result
 
     @property
     def u_eq(self):
@@ -105,7 +106,8 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         # f is a zero vector as nothing should happen when no control input is given
         h =  x[:, SimpleBalloon2d.Z]
-        f[:, SimpleBalloon2d.X, 0] = torch.sin(h)
+        f[:, SimpleBalloon2d.X, 0] = -h/10.0
+        f[:, SimpleBalloon2d.Z, 0] = 0.0
 
         return f 
     

@@ -27,15 +27,15 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 start_x = torch.tensor(
     [
-        [0.0, 0.0, 0.0],
-        [1.0, 1.0, 2.0],
-        [-1.0, 1.0, 2.0],
-        [1.0, +1.0, 4.0],
-        [-1.0, 1.0, 4.0],
-        [2.0, 2.0, 2.0],
-        [-2.0, 2.0, 2.0],
-        [2.0, +2.0, 4.0],
-        [-2.0, 2.0, 4.0]
+        # [0.0, 0.0],
+        # [1.0, 2.0],
+        # [-1.0, 2.0],
+        # [1.0,  4.0],
+        # [-1.0, 4.0],
+        # [2.0, 2.0],
+        # [-2.0, 2.0],
+        # [2.0,  4.0],
+        # [-2.0, 4.0]
         
     ]
 )
@@ -49,8 +49,8 @@ def main(args):
 
     # Initialize the DataModule
     domains = [
-        (-20.0, 20.0),  # x
-        (-20.0, 20.0),  # z
+        (-10.0, 10.0),  # x
+        (0.0, 10.0),  # z
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -69,26 +69,26 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-20.0, 20.0), (-20.0, 20.0)],
+        domain=domains,
         n_grid=25,
-        x_axis_index=SimpleBalloon.X,
-        y_axis_index=SimpleBalloon.Y,
+        x_axis_index=SimpleBalloon2d.X,
+        y_axis_index=SimpleBalloon2d.Z,
         x_axis_label="x",
-        y_axis_label="y",
+        y_axis_label="z",
         plot_unsafe_region=True,
     )
     rollout_experiment = RolloutStateSpaceExperiment(
         "Rollout",
         start_x,
-        SimpleBalloon.X,
+        SimpleBalloon2d.X,
         "x",
-        SimpleBalloon.Y,
-        "y",
+        SimpleBalloon2d.Z,
+        "z",
         scenarios=scenarios,
         n_sims_per_start=1,
         t_sim=20.0,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_experiment])
+    experiment_suite = ExperimentSuite([V_contour_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
