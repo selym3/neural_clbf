@@ -12,6 +12,7 @@ class SimpleBalloon2d(ControlAffineSystem):
     N_CONTROLS = 1
 
     X = 0
+    Z = 1
 
     UZ = 0
 
