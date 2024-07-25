@@ -51,8 +51,8 @@ def main(args):
 
     # Initialize the DataModule
     domains = [
-        (-14.0, 14.0),  # x
-        (-4, 14.0),  # z
+        (-11.0, 11.0),  # x
+        (-1, 11.0),  # z
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -71,7 +71,7 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=domains,
+        domain=[(-14, 14), (-4, 14)],
         n_grid=25,
         x_axis_index=SimpleBalloon2d.X,
         y_axis_index=SimpleBalloon2d.Z,
