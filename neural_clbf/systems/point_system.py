@@ -114,7 +114,7 @@ class Point(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 7.0
+        safe_bound = x.norm(dim=-1) <= 8.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -126,7 +126,7 @@ class Point(ControlAffineSystem):
         """
         # unsafe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) <= 1.0
         unsafe_mask = x.norm(dim=-1) <= 1.0
-        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 8.5)
+        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 9.5)
 
         return unsafe_mask
 

@@ -31,7 +31,9 @@ start_x = torch.tensor(
         [ 4.5,  4.5],
         [ 3.0,  3.0],
         [ 5.5, 6.5],
-        [ 3.5, -6.0]
+        [ 3.5, -6.0],
+        [2.0, 0.0],
+        [-3.5, 0.0]
     ]
 )
 
@@ -52,7 +54,7 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_conditions,
-        trajectories_per_episode=2,  # disable collecting data from trajectories
+        trajectories_per_episode=10,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
@@ -96,7 +98,7 @@ def main(args):
         experiment_suite,
         clbf_hidden_layers=2,
         clbf_hidden_size=128,
-        clf_lambda=0.05,
+        clf_lambda=0.01,
         safe_level=1,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
@@ -118,7 +120,7 @@ def main(args):
         "logs/point_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=60
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=51
     )
 
     # Train
