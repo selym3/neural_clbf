@@ -21,11 +21,11 @@ class SimpleBalloon2d(ControlAffineSystem):
             nominal_params = {},
             dt = 0.01,
             controller_dt= None,
-            use_linearized_controller = True,
+            use_linearized_controller = False,
             scenarios= None,
         )
 
-        # self.P = torch.eye(3)
+        self.P = torch.eye(2)
 
     def validate_params(self, params) -> bool:
         return True
@@ -119,8 +119,8 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         return values.type_as(x)
 
-    # def u_nominal(self, x, params=None):
-    #     z = x[:, SimpleBalloon2d.Z].type_as(x)
-    #     z_target = torch.zeros_like(z).type_as(x)
-    #     return (z_target - z).reshape(-1, self.n_controls)
+    def u_nominal(self, x, params=None):
+        z = x[:, SimpleBalloon2d.Z].type_as(x)
+        z_target = torch.zeros_like(z).type_as(x)
+        return (z_target - z).reshape(-1, self.n_controls)
     
