@@ -79,8 +79,8 @@ class Point(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[Point.X] = 13
-        upper_limit[Point.Y] = 13
+        upper_limit[Point.X] = 10
+        upper_limit[Point.Y] = 10
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,8 +94,8 @@ class Point(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[Point.UX] = 12
-        upper_limit[Point.UY] = 12
+        upper_limit[Point.UX] = 5
+        upper_limit[Point.UY] = 5
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -114,7 +114,7 @@ class Point(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 20.0
+        safe_bound = x.norm(dim=-1) < 7.0
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -126,6 +126,7 @@ class Point(ControlAffineSystem):
         """
         # unsafe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) <= 1.0
         unsafe_mask = x.norm(dim=-1) <= 1.0
+        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 8.5)
 
         return unsafe_mask
 

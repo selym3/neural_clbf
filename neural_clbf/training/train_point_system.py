@@ -23,16 +23,18 @@ from neural_clbf.systems import Point
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
-# start_x = torch.tensor(
-#     [
-#         [-4.0, -4.0],
-#         [-4.5, -4.5],
-#         [-4.0, -4.5],
-#         [-4.5, -4.0],
-#         [ 4.5,  4.5],
-#         [ 4.0,  4.0]
-#     ]
-# )
+start_x = torch.tensor(
+    [
+        [-6.0, -6.0],
+        [-4.0, -4.5],
+        [-4.5, 4.0],
+        [ 4.5,  4.5],
+        [ 3.0,  3.0],
+        [ 5.5, 6.5],
+        [ 3.5, -6.0]
+    ]
+)
+
 controller_period = 0.01
 simulation_dt = 0.01
 
@@ -50,7 +52,7 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_conditions,
-        trajectories_per_episode=3,  # disable collecting data from trajectories
+        trajectories_per_episode=2,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
@@ -64,7 +66,7 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-15.0, 15.0), (-15.0, 15.0)],
+        domain=[(-12.0, 12.0), (-12.0, 12.0)],
         n_grid=25,
         x_axis_index=Point.X,
         y_axis_index=Point.Y,
@@ -72,7 +74,19 @@ def main(args):
         y_axis_label="$y$",
         plot_unsafe_region=True,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment])
+    
+    rollout_state_space_experiment = RolloutStateSpaceExperiment(
+        "Rollout State Space",
+        start_x,
+        plot_x_index=Point.X,
+        plot_x_label="$x$",
+        plot_y_index=Point.Y,
+        plot_y_label="$y$",
+        scenarios=[nominal_params],
+        n_sims_per_start=1,
+        t_sim=20.0,
+    )
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_state_space_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
