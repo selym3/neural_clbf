@@ -92,7 +92,7 @@ class XLinPoint(ControlAffineSystem):
         """
         # define upper and lower limits based around the nominal equilibrium input
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[XLinPoint.UX] = 10 #100 #30 #15
+        upper_limit[XLinPoint.UX] = 3 #100 #30 #15
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
@@ -165,10 +165,13 @@ class XLinPoint(ControlAffineSystem):
         f = f.type_as(x)
         
         f[:, XLinPoint.X, 0] = 0.0
-        f[:, XLinPoint.Y, 0] = 0.1
+        f[:, XLinPoint.Y, 0] = 1.0
         
         close_to_goal = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
         f[close_to_goal, XLinPoint.Y, 0] = 0.0
+        
+        # higher_than_goal_y = x[:, XLinPoint.Y] > self.goal_point[0, XLinPoint.Y]
+        # f[higher_than_goal_y, XLinPoint.Y, 0] = 0.0
 
         return f
 

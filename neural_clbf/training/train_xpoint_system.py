@@ -15,12 +15,24 @@ from neural_clbf.datamodules.episodic_datamodule import (
 )
 from neural_clbf.experiments import (
     ExperimentSuite,
-    CLFContourExperiment
+    CLFContourExperiment,
+    RolloutStateSpaceExperiment
 )
-from neural_clbf.systems import XPoint
+from neural_clbf.systems import XPoint, XLinPoint
 
 
 torch.multiprocessing.set_sharing_strategy("file_system")
+start_x = torch.tensor(
+    [
+        [-4.0, -4.5],
+        [ 3.0,  3.0],
+        [-2.0, -3.0],
+        [ 3.5, -6.0],
+        [2.0, 0.0],
+        [-3.5, 0.0],
+        [1.0, -2.0]
+    ]
+)
 
 controller_period = 0.01
 simulation_dt = 0.01
@@ -29,12 +41,12 @@ simulation_dt = 0.01
 def main(args):
     # Define the dynamics model
     nominal_params = {}
-    dynamics_model = XPoint(nominal_params, dt=simulation_dt, controller_dt=controller_period)
+    dynamics_model = XLinPoint(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
     # Initialize the DataModule
     initial_domain = [
-        (-5, 5),  # x
-        (-5, 5),  # y
+        (-10, 10),  # x
+        (-10, 10),  # y
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -53,15 +65,26 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-10.0, 10.0), (-10.0, 10.0)],
+        domain=[(-12.0, 12.0), (-12.0, 12.0)],
         n_grid=25,
-        x_axis_index=XPoint.X,
-        y_axis_index=XPoint.Y,
+        x_axis_index=XLinPoint.X,
+        y_axis_index=XLinPoint.Y,
         x_axis_label="$x$",
         y_axis_label="$y$",
         plot_unsafe_region=True,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment])
+    rollout_state_space_experiment = RolloutStateSpaceExperiment(
+        "Rollout State Space",
+        start_x,
+        plot_x_index=XLinPoint.X,
+        plot_x_label="$x$",
+        plot_y_index=XLinPoint.Y,
+        plot_y_label="$y$",
+        scenarios=[nominal_params],
+        n_sims_per_start=2,
+        t_sim=30.0,
+    )
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_state_space_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -93,7 +116,7 @@ def main(args):
         "logs/xpoint_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
-        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=70
+        args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=51
     )
 
     # Train
