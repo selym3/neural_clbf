@@ -45,11 +45,11 @@ class SimpleBalloon2d(ControlAffineSystem):
     @property
     def state_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleBalloon2d.X] = 12
-        upper_limit[SimpleBalloon2d.Z] = 12
+        upper_limit[SimpleBalloon2d.X] = 11
+        upper_limit[SimpleBalloon2d.Z] = 11
 
         lower_limit = -1.0 * upper_limit
-        lower_limit[SimpleBalloon2d.Z] = -2
+        lower_limit[SimpleBalloon2d.Z] = -1
 
         return (upper_limit, lower_limit)
 

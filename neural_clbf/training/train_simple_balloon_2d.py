@@ -51,8 +51,8 @@ def main(args):
 
     # Initialize the DataModule
     domains = [
-        (-12.0, 12.0),  # x
-        (-2, 12.0),  # z
+        (-11.0, 11.0),  # x
+        (-1.0, 11.0),  # z
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
