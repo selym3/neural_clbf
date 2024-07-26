@@ -85,7 +85,7 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         outside_circle = x**2 >= 10.9**2
 
-        outside_z_range = (z <= -0.9) & (z >= 10.9)
+        outside_z_range = (z <= -0.9) | (z >= 10.9)
 
         result = outside_circle | outside_z_range
         return result
