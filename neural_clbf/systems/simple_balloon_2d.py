@@ -121,7 +121,8 @@ class SimpleBalloon2d(ControlAffineSystem):
         return values.type_as(x)
 
     def u_nominal(self, x, params=None):
-        z = x[:, SimpleBalloon2d.Z].type_as(x)
-        z_target = torch.zeros_like(z).type_as(x)
-        return torch.clip((z_target - z), -1, +1).reshape(-1, self.n_controls)
+        return torch.zeros((x.shape[0], self.n_controls))
+        # z = x[:, SimpleBalloon2d.Z].type_as(x)
+        # z_target = torch.zeros_like(z).type_as(x)
+        # return torch.clip((z_target - z), -1, +1).reshape(-1, self.n_controls)
     
