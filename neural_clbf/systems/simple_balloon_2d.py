@@ -49,7 +49,7 @@ class SimpleBalloon2d(ControlAffineSystem):
         upper_limit[SimpleBalloon2d.Z] = 11
 
         lower_limit = -1.0 * upper_limit
-        lower_limit[SimpleBalloon2d.Z] = -1
+        lower_limit[SimpleBalloon2d.Z] = -4
 
         return (upper_limit, lower_limit)
 
@@ -85,7 +85,7 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         outside_circle = x**2 >= 10.9**2
 
-        outside_z_range = (z <= -0.9) | (z >= 10.9)
+        outside_z_range = (z <= -2.0) | (z >= 10.9)
 
         result = outside_circle | outside_z_range
         return result
