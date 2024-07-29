@@ -25,15 +25,16 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 
 start_x = torch.tensor(
     [
-        [-6.0, -6.0],
         [-4.0, -4.5],
         [-4.5, 4.0],
         [ 4.5,  4.5],
         [ 3.0,  3.0],
         [ 5.5, 6.5],
+        [-2.0, -3.0],
         [ 3.5, -6.0],
         [2.0, 0.0],
-        [-3.5, 0.0]
+        [-3.5, 0.0],
+        [1.0, -2.0]
     ]
 )
 
@@ -54,7 +55,7 @@ def main(args):
     data_module = EpisodicDataModule(
         dynamics_model,
         initial_conditions,
-        trajectories_per_episode=10,  # disable collecting data from trajectories
+        trajectories_per_episode=50,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
         max_points=100000,
@@ -85,8 +86,8 @@ def main(args):
         plot_y_index=Point.Y,
         plot_y_label="$y$",
         scenarios=[nominal_params],
-        n_sims_per_start=1,
-        t_sim=20.0,
+        n_sims_per_start=2,
+        t_sim=50.0,
     )
     experiment_suite = ExperimentSuite([V_contour_experiment, rollout_state_space_experiment])
 
@@ -96,16 +97,16 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
+        clbf_hidden_layers=3,
         clbf_hidden_size=128,
-        clf_lambda=0.01,
-        safe_level=1,
+        clf_lambda=0.05,
+        safe_level=0.5,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=20,  # disable new data-gathering
+        epochs_per_episode=50,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )

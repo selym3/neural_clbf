@@ -16,24 +16,21 @@ from neural_clbf.datamodules.episodic_datamodule import (
 from neural_clbf.experiments import (
     ExperimentSuite,
     CLFContourExperiment,
-    RolloutStateSpaceExperiment
+    RolloutStateSpaceObsExperiment
 )
-from neural_clbf.systems import XPoint, XLinPoint
+from neural_clbf.systems import XLayObsPoint
 
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 start_x = torch.tensor(
     [
-        [3, 3],
-        [-3, 2.5],
-        [-1.5, 1],
-        [-4.0, -4.5],
-        [ 3.0,  3.0],
-        [-2.0, -3.0],
-        [ 3.5, -6.0],
-        [2.0, 0.0],
-        [-3.5, 0.0],
-        [1.0, -2.0]
+        [-4.0, -4.5, 0.0, 0.1397],
+        [ 3.0,  3.0, 0.0, -0.488765058833],
+        [-2.0, -3.0, 0.0, -0.070560],
+        [ 3.5, -6.0, 0.0, -0.4294672],
+        [2.0, 0.0, 0.0, 0.070560],
+        [-3.5, 0.0, 0.0, 0.4294672],
+        [1.0, -2.0, 0.0, 0.4987474]
     ]
 )
 
@@ -44,12 +41,15 @@ simulation_dt = 0.01
 def main(args):
     # Define the dynamics model
     nominal_params = {}
-    dynamics_model = XLinPoint(nominal_params, dt=simulation_dt, controller_dt=controller_period)
+    dynamics_model = XLayObsPoint(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
+    print(0.7)
     # Initialize the DataModule
     initial_domain = [
         (-10, 10),  # x
-        (-10, 10),  # y
+        (-10, 5),  # y
+        (-1, 1), # wx
+        (-1, 1) # wy
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
@@ -68,24 +68,25 @@ def main(args):
 
     V_contour_experiment = CLFContourExperiment(
         "V_Contour",
-        domain=[(-12.0, 12.0), (-12.0, 12.0)],
+        domain=[(-12.0, 12.0), (-12.0, 4)],
         n_grid=25,
-        x_axis_index=XLinPoint.X,
-        y_axis_index=XLinPoint.Y,
+        x_axis_index=XLayObsPoint.X,
+        y_axis_index=XLayObsPoint.Y,
         x_axis_label="$x$",
         y_axis_label="$y$",
         plot_unsafe_region=True,
     )
-    rollout_state_space_experiment = RolloutStateSpaceExperiment(
+    rollout_state_space_experiment = RolloutStateSpaceObsExperiment(
         "Rollout State Space",
         start_x,
-        plot_x_index=XLinPoint.X,
+        plot_x_index=XLayObsPoint.X,
         plot_x_label="$x$",
-        plot_y_index=XLinPoint.Y,
+        plot_y_index=XLayObsPoint.Y,
         plot_y_label="$y$",
         scenarios=[nominal_params],
         n_sims_per_start=2,
         t_sim=30.0,
+        state_length=2
     )
     experiment_suite = ExperimentSuite([V_contour_experiment, rollout_state_space_experiment])
 
@@ -116,7 +117,7 @@ def main(args):
         .strip()
     )
     tb_logger = pl_loggers.TensorBoardLogger(
-        "logs/xpoint_system/", name=f"commit_{current_git_hash}"
+        "logs/xpoint_obs_layer_system/", name=f"commit_{current_git_hash}"
     )
     trainer = pl.Trainer.from_argparse_args(
         args, logger=tb_logger, reload_dataloaders_every_epoch=True, max_epochs=51
