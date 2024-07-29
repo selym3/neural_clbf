@@ -101,7 +101,7 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
+        clbf_hidden_layers=4,
         clbf_hidden_size=128,
         clf_lambda=0.05,
         safe_level=1.0,
@@ -109,7 +109,7 @@ def main(args):
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
-        num_init_epochs=5,
+        num_init_epochs=0,
         epochs_per_episode=100,
         barrier=True, 
         disable_gurobi= True
