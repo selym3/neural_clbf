@@ -21,11 +21,11 @@ class SimpleBalloon2d(ControlAffineSystem):
             nominal_params = {},
             dt = 0.01,
             controller_dt= None,
-            use_linearized_controller = False,
+            use_linearized_controller = True,
             scenarios= None,
         )
 
-        self.P = torch.eye(2)
+        # self.P = torch.eye(2)
 
     def validate_params(self, params) -> bool:
         return True
@@ -49,14 +49,13 @@ class SimpleBalloon2d(ControlAffineSystem):
         upper_limit[SimpleBalloon2d.Z] = 11
 
         lower_limit = -1.0 * upper_limit
-        lower_limit[SimpleBalloon2d.Z] = -4
 
         return (upper_limit, lower_limit)
 
     @property
     def control_limits(self) :
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[SimpleBalloon2d.UZ] = 25.0
+        upper_limit[SimpleBalloon2d.UZ] = 10
 
         lower_limit = -1.0 * upper_limit
         
@@ -72,7 +71,7 @@ class SimpleBalloon2d(ControlAffineSystem):
         within_circle = x**2 <= 10**2
 
         # Check if z is between 0 and 10
-        within_z_range = (z >= 0) & (z <= 10.0)
+        within_z_range = z**2 <= 10**2
 
         # Both conditions must be true
         result = within_circle & within_z_range
@@ -85,7 +84,7 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         outside_circle = x**2 >= 10.9**2
 
-        outside_z_range = (z <= -2.0) | (z >= 10.9)
+        outside_z_range = z**2 >= 10.9 ** 2
 
         result = outside_circle | outside_z_range
         return result
@@ -120,9 +119,3 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         return values.type_as(x)
 
-    def u_nominal(self, x, params=None):
-        return torch.zeros((x.shape[0], self.n_controls)).type_as(x)
-        # z = x[:, SimpleBalloon2d.Z].type_as(x)
-        # z_target = torch.zeros_like(z).type_as(x)
-        # return torch.clip((z_target - z), -1, +1).reshape(-1, self.n_controls)
-    
