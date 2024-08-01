@@ -26,6 +26,7 @@ from .simple_balloon import SimpleBalloon
 from .xpoint_linear_wind import XLinPoint
 from .xpoint_layer_wind import XLayPoint
 from .xpoint_observed import XLayObsPoint
+from .balloon_system import SimpleBalloon2d
 
 __all__ = [
     "ControlAffineSystem",
@@ -54,6 +55,7 @@ __all__ = [
     "XLinPoint",
     "XLayPoint",
     "XLayObsPoint",
+    "SimpleBalloon2d",
 ]
 
 try:

@@ -150,7 +150,15 @@ class XLayObsPoint(ControlAffineSystem):
 
         # Wind dynamics
         f[:, XLayObsPoint.WX, 0] = 0
-        f[:, XLayObsPoint.WY, 0] = wind_strength * torch.sin(frequency_factor * x[:, XLayObsPoint.X])
+        f[:, XLayObsPoint.WY, 0] = wind_strength * torch.cos(frequency_factor * x[:, XLayObsPoint.X])
+        
+        # Check if y is close to the goal[1] within a range of 0.5
+        close_to_goal_y = torch.abs(x[:, XLayObsPoint.Y] - self.goal_point[0, XLayObsPoint.Y]) <= 0.5
+        f[close_to_goal_y, XLayObsPoint.Y, 0] = 0.2 * torch.sign(self.goal_point[0, XLayObsPoint.X] - x[close_to_goal_y, XLayObsPoint.X])
+        
+        # Check if the state is close to the goal
+        close_to_goal = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
+        f[close_to_goal, XLayObsPoint.Y, 0] = 0.0
 
         return f
 

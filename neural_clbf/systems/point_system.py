@@ -7,7 +7,7 @@ import torch.nn.functional
 
 from .control_affine_system import ControlAffineSystem
 from neural_clbf.systems.utils import Scenario, ScenarioList
-
+import cvxpy as cp
 
 class Point(ControlAffineSystem):
     """
@@ -44,11 +44,12 @@ class Point(ControlAffineSystem):
             dt=dt,
             controller_dt=controller_dt,
             scenarios=scenarios,
-            use_linearized_controller=True,
+            use_linearized_controller=False,
         )
 
-        # self.P = torch.eye(self.n_dims)
+        self.P = torch.eye(self.n_dims)
         # self.K = torch.zeros(self.n_controls, self.n_dims)
+        self.horizon = 10
 
     def validate_params(self, params) -> bool:
         """Check if a given set of parameters is valid
@@ -111,10 +112,10 @@ class Point(ControlAffineSystem):
             x: a tensor of points in the state space
         """
         # safe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) > 1.0
-        safe_mask = x.norm(dim=-1) > 1.0
+        safe_mask = x.norm(dim=-1) > 1.5
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) <= 8.0
+        safe_bound = x.norm(dim=-1) <= 8.5
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -126,7 +127,7 @@ class Point(ControlAffineSystem):
         """
         # unsafe_mask = (x - torch.tensor([[4.0, 4.0]]).type_as(x)).norm(dim=-1) <= 1.0
         unsafe_mask = x.norm(dim=-1) <= 1.0
-        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 9.5)
+        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 10)
 
         return unsafe_mask
 
@@ -193,3 +194,54 @@ class Point(ControlAffineSystem):
     #     # to_target = self.goal_point.repeat(x.shape[0], 1).type_as(x) - x
     #     # to_target = torch.nn.functional.normalize(to_target, p=2, dim=1).type_as(x) # by normalizing, always falls in allowed controls set
     #     return torch.zeros((x.shape[0], self.n_controls)).type_as(x) #to_target 
+    
+    def u_nominal(self, x: torch.Tensor, params: Optional[Scenario] = None) -> torch.Tensor:
+        batch_size = x.shape[0]
+        u_nom = torch.zeros((batch_size, self.n_controls)).type_as(x)
+
+        for i in range(batch_size):
+            u_nom[i, :] = self.solve_mpc(x[i, :])
+
+        return u_nom
+
+    def solve_mpc(self, x0: torch.Tensor) -> torch.Tensor:
+        n = self.n_dims
+        m = self.n_controls
+        N = self.horizon
+
+        # Define the optimization variables
+        x = cp.Variable((N + 1, n))
+        u = cp.Variable((N, m))
+
+        # Define the parameters
+        x_init = x0.cpu().numpy()
+        x_goal = self.goal_point.cpu().numpy().flatten()
+
+        # Define the cost function
+        cost = 0
+        constraints = []
+
+        for t in range(N):
+            cost += cp.norm(x[t + 1] - x_goal, 2)**2  # minimize distance to goal
+            cost += cp.norm(u[t], 2)**2  # minimize control effort
+
+            # System dynamics constraints
+            f_t = self._f(torch.tensor(x[t]).unsqueeze(0), None).squeeze().cpu().numpy()
+            g_t = self._g(torch.tensor(x[t]).unsqueeze(0), None).squeeze().cpu().numpy()
+            constraints += [x[t + 1] == x[t] + self.dt * (f_t + g_t @ u[t])]
+
+            # Control limits
+            constraints += [u[t] >= self.control_limits[1].cpu().numpy()]
+            constraints += [u[t] <= self.control_limits[0].cpu().numpy()]
+
+        # Initial condition constraint
+        constraints += [x[0] == x_init]
+
+        # Solve the optimization problem
+        problem = cp.Problem(cp.Minimize(cost), constraints)
+        problem.solve()
+
+        # Extract the first control input
+        u_opt = u.value[0]
+
+        return torch.tensor(u_opt).type_as(x0)

@@ -39,7 +39,7 @@ start_x = torch.tensor(
         
     ]
 )
-controller_period = 0.05
+controller_period = 0.01
 simulation_dt = 0.01
 
 
