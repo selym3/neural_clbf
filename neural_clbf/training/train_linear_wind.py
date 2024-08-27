@@ -23,6 +23,21 @@ from neural_clbf.systems import LinearWind
 
 torch.multiprocessing.set_sharing_strategy("file_system")
 
+start_x = torch.tensor(
+    [
+        [-4.0, -4.5],
+        [-4.5, 4.0],
+        [ 4.5,  4.5],
+        [ 3.0,  3.0],
+        [ 5.5, 6.5],
+        [-2.0, -3.0],
+        [ 3.5, -6.0],
+        [2.0, 0.0],
+        [-3.5, 0.0],
+        [1.0, -2.0]
+    ]
+)
+
 controller_period = 0.01
 simulation_dt = 0.01
 
@@ -33,13 +48,14 @@ def main(args):
     dynamics_model = LinearWind(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
     # Initialize the DataModule
-    initial_domain = [
-        (-5, 5),  # x
-        (-5, 5),  # y
+    initial_conditions = [
+        (-8, 8),  # x
+        (-8, 8),  # y
     ]
+    
     data_module = EpisodicDataModule(
         dynamics_model,
-        initial_domain,
+        initial_conditions,
         trajectories_per_episode=5,  # disable collecting data from trajectories
         trajectory_length=1,
         fixed_samples=10000,
@@ -62,7 +78,19 @@ def main(args):
         y_axis_label="$y$",
         plot_unsafe_region=True,
     )
-    experiment_suite = ExperimentSuite([V_contour_experiment])
+    
+    rollout_state_space_experiment = RolloutStateSpaceExperiment(
+        "Rollout State Space",
+        start_x,
+        plot_x_index=LinearWind.X,
+        plot_x_label="$x$",
+        plot_y_index=LinearWind.Y,
+        plot_y_label="$y$",
+        scenarios=[nominal_params],
+        n_sims_per_start=2,
+        t_sim=50.0,
+    )
+    experiment_suite = ExperimentSuite([V_contour_experiment, rollout_state_space_experiment])
 
     # Initialize the controller
     clbf_controller = NeuralCLBFController(
@@ -70,16 +98,16 @@ def main(args):
         scenarios,
         data_module,
         experiment_suite,
-        clbf_hidden_layers=2,
+        clbf_hidden_layers=3,
         clbf_hidden_size=128,
-        clf_lambda=0.05,
+        clf_lambda=0.01,
         safe_level=1.0,
         controller_period=controller_period,
         clf_relaxation_penalty=1e1,
         primal_learning_rate=1e-3,
         penalty_scheduling_rate=0,
         num_init_epochs=0,
-        epochs_per_episode=20,  # disable new data-gathering
+        epochs_per_episode=50,  # disable new data-gathering
         barrier=True,  # disable fitting level sets to a safe/unsafe boundary
         disable_gurobi= True
     )
@@ -97,7 +125,7 @@ def main(args):
         args, 
         logger=tb_logger,
         reload_dataloaders_every_epoch=True, 
-        max_epochs=70
+        max_epochs=51
     )
 
     # Train

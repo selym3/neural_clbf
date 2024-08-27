@@ -74,7 +74,7 @@ class SimpleBalloon2d(ControlAffineSystem):
         limits for this system
         """
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[SimpleBalloon2d.UZ] = 5.0
+        upper_limit[SimpleBalloon2d.UZ] = 1.5
 
         lower_limit = -1.0 * upper_limit
 
@@ -98,6 +98,22 @@ class SimpleBalloon2d(ControlAffineSystem):
         goal_tolerance = 0.1
         return x.norm(dim=-1) <= goal_tolerance
 
+    # def _f(self, x: torch.Tensor, params):
+    #     batch_size = x.shape[0]
+    #     f = torch.zeros((batch_size, self.n_dims, 1), device=x.device)
+
+    #     # Calculate the distance from the goal
+    #     distances = torch.norm(x - self.goal_point.type_as(x), dim=1)
+
+    #     # Set f to zero if within 0.3 units of the goal
+    #     close_to_goal = distances < 0.3
+
+    #     h = x[:, SimpleBalloon2d.Z]
+    #     f[~close_to_goal, SimpleBalloon2d.X, 0] = -torch.sin(h[~close_to_goal])
+    #     f[~close_to_goal, SimpleBalloon2d.Z, 0] = 0.0
+
+    #     return f
+        
     def _f(self, x: torch.Tensor, params):
         batch_size = x.shape[0]
         f = torch.zeros((batch_size, self.n_dims, 1), device=x.device)
@@ -106,11 +122,26 @@ class SimpleBalloon2d(ControlAffineSystem):
         distances = torch.norm(x - self.goal_point.type_as(x), dim=1)
 
         # Set f to zero if within 0.3 units of the goal
-        close_to_goal = distances < 0.3
+        close_to_goal = distances < 0.7
 
         h = x[:, SimpleBalloon2d.Z]
-        f[~close_to_goal, SimpleBalloon2d.X, 0] = -torch.sin(h[~close_to_goal])
-        f[~close_to_goal, SimpleBalloon2d.Z, 0] = 0.0
+
+        # Determine wind direction based on z level
+        wind_direction = torch.where(
+            (h % 2).abs() < 0.5, 
+            torch.tensor(1.0, device=h.device, dtype=h.dtype), 
+            torch.tensor(-1.0, device=h.device, dtype=h.dtype)
+        )
+
+        # Set wind to zero at z = 0 or close to the goal
+        wind_direction = torch.where(
+            (h == 0) | close_to_goal, 
+            torch.tensor(0.0, device=h.device, dtype=h.dtype), 
+            wind_direction
+        )
+
+        f[:, SimpleBalloon2d.X, 0] = wind_direction
+        f[:, SimpleBalloon2d.Z, 0] = torch.tensor(0.0, device=h.device, dtype=h.dtype)
 
         return f
     
@@ -122,64 +153,64 @@ class SimpleBalloon2d(ControlAffineSystem):
 
         return values.type_as(x)
 
-
-    def u_nominal(self, x, params=None):
-        if self.previous_x is None or self.previous_x.shape != x.shape:
-            self.previous_x = x.clone()
-
-        # Ensure goal_point is on the same device as x
-        goal_point = self.goal_point.to(x.device)
-
-        # Check if each point is approaching the goal in x-direction
-        approaching_goal = (x[:, SimpleBalloon2d.X] - self.previous_x[:, SimpleBalloon2d.X]) < 0
-
-        # Control input
-        u_nom = torch.zeros((x.shape[0], self.n_controls)).type_as(x)
-
-        # Define the control limits
-        upper_limit, lower_limit = self.control_limits
-        upper_limit = upper_limit.to(x.device)
-        lower_limit = lower_limit.to(x.device)
-
-        # Generate linspace of potential z values within the control limits
-        z_values = torch.linspace(lower_limit[SimpleBalloon2d.UZ], upper_limit[SimpleBalloon2d.UZ], 10).to(x.device)
-
-        # Process each state individually
-        for i in range(x.shape[0]):
-            if approaching_goal[i]:
-                # Take the difference between current z and goal z
-                z_diff = goal_point[0, SimpleBalloon2d.Z] - x[i, SimpleBalloon2d.Z]
-                Kp = 0.5  # Proportional gain for z control
-                u_nom[i, SimpleBalloon2d.UZ] = Kp * z_diff
-            else:
-                # Find the z that can switch the direction of movement along x-axis
-                current_z = x[i, SimpleBalloon2d.Z]
-                best_z = current_z
-                min_distance = float('inf')
-
-                for z in z_values:
-                    h = z
-                    sin_h_approx = h - (h**3) / 6.0
-
-                    if (goal_point[0, SimpleBalloon2d.X] > x[i, SimpleBalloon2d.X] and sin_h_approx > 0) or (goal_point[0, SimpleBalloon2d.X] < x[i, SimpleBalloon2d.X] and sin_h_approx < 0):
-                        distance = torch.abs(z - current_z)
-                        if distance < min_distance:
-                            min_distance = distance
-                            best_z = z
-
-                z_diff = best_z - current_z
-                Kp = 0.5  # Proportional gain for z control
-                u_nom[i, SimpleBalloon2d.UZ] = Kp * z_diff
-
-        # Clip the control values by the control limits
-        u_nom = torch.clamp(u_nom, min=lower_limit, max=upper_limit)
-
-        # Update the previous state
-        self.previous_x = x.clone()
-
-        return u_nom.reshape(-1, self.n_controls)
     # def u_nominal(self, x, params=None):
-    #     pass
+    #     if self.previous_x is None or self.previous_x.shape != x.shape:
+    #         self.previous_x = x.clone()
+
+    #     # Ensure goal_point is on the same device as x
+    #     goal_point = self.goal_point.to(x.device)
+
+    #     # Check if each point is approaching the goal in x-direction
+    #     approaching_goal = (x[:, SimpleBalloon2d.X] - self.previous_x[:, SimpleBalloon2d.X]) < 0
+
+    #     # Control input
+    #     u_nom = torch.zeros((x.shape[0], self.n_controls)).type_as(x)
+
+    #     # Define the control limits
+    #     upper_limit, lower_limit = self.control_limits
+    #     upper_limit = upper_limit.to(x.device)
+    #     lower_limit = lower_limit.to(x.device)
+
+    #     # Generate linspace of potential z values within the control limits
+    #     z_values = torch.linspace(lower_limit[SimpleBalloon2d.UZ], upper_limit[SimpleBalloon2d.UZ], 10).to(x.device)
+
+    #     # Process each state individually
+    #     for i in range(x.shape[0]):
+    #         if approaching_goal[i]:
+    #             # Take the difference between current z and goal z
+    #             z_diff = goal_point[0, SimpleBalloon2d.Z] - x[i, SimpleBalloon2d.Z]
+    #             Kp = 0.5  # Proportional gain for z control
+    #             u_nom[i, SimpleBalloon2d.UZ] = Kp * z_diff
+    #         else:
+    #             # Find the z that can switch the direction of movement along x-axis
+    #             current_z = x[i, SimpleBalloon2d.Z]
+    #             best_z = current_z
+    #             min_distance = float('inf')
+
+    #             for z in z_values:
+    #                 h = z
+    #                 sin_h_approx = h - (h**3) / 6.0
+
+    #                 if (goal_point[0, SimpleBalloon2d.X] > x[i, SimpleBalloon2d.X] and sin_h_approx > 0) or (goal_point[0, SimpleBalloon2d.X] < x[i, SimpleBalloon2d.X] and sin_h_approx < 0):
+    #                     distance = torch.abs(z - current_z)
+    #                     if distance < min_distance:
+    #                         min_distance = distance
+    #                         best_z = z
+
+    #             z_diff = best_z - current_z
+    #             Kp = 0.5  # Proportional gain for z control
+    #             u_nom[i, SimpleBalloon2d.UZ] = Kp * z_diff
+
+    #     # Clip the control values by the control limits
+    #     u_nom = torch.clamp(u_nom, min=lower_limit, max=upper_limit)
+
+    #     # Update the previous state
+    #     self.previous_x = x.clone()
+
+    #     return u_nom.reshape(-1, self.n_controls)
+    
+    # def u_nominal(self, x, params=None):
+    #     # pass
     #     horizontal_diff = self.goal_point[0, SimpleBalloon2d.Z].type_as(x) - x[:, SimpleBalloon2d.Z]
 
     #     # Apply a proportional control gain for stability
@@ -193,7 +224,7 @@ class SimpleBalloon2d(ControlAffineSystem):
     #     u_nom = torch.clamp(u_nom, min=lower_limit, max=upper_limit)
 
     #     return u_nom.reshape(-1, self.n_controls)
-        # return self.mpc_control(x, params)
+    #     return self.mpc_control(x, params)
     
     # def mpc_control(self, x: torch.Tensor, params) -> torch.Tensor:
     #     """
@@ -253,57 +284,57 @@ class SimpleBalloon2d(ControlAffineSystem):
 
     #     return u_optimal
 
-    # def u_nominal(self, x, params=None):
-    #     # Define a function that returns the wind effect at a given z level
-    #     def wind_effect_at_z(z):
-    #         return -0.1 * torch.sin(z)
+    def u_nominal(self, x, params=None):
+        # Define a function that returns the wind effect at a given z level
+        def wind_effect_at_z(z):
+            return -0.1 * torch.sin(z)
         
-    #     # Determine the current position and the goal position
-    #     current_z = x[:, SimpleBalloon2d.Z]
-    #     goal_x = self.goal_point[0, SimpleBalloon2d.X].type_as(x)
-    #     current_x = x[:, SimpleBalloon2d.X]
+        # Determine the current position and the goal position
+        current_z = x[:, SimpleBalloon2d.Z]
+        goal_x = self.goal_point[0, SimpleBalloon2d.X].type_as(x)
+        current_x = x[:, SimpleBalloon2d.X]
         
-    #     # Calculate the direction towards the goal in the x-axis
-    #     direction_to_goal = torch.sign(goal_x - current_x).unsqueeze(-1)  # Expand dimension for broadcasting
+        # Calculate the direction towards the goal in the x-axis
+        direction_to_goal = torch.sign(goal_x - current_x).unsqueeze(-1)  # Expand dimension for broadcasting
         
-    #     # Assume z levels to check are in the range of the state limits
-    #     state_upper_limit, state_lower_limit = self.state_limits
-    #     z_levels = torch.linspace(state_lower_limit[SimpleBalloon2d.Z].item(), state_upper_limit[SimpleBalloon2d.Z].item(), steps=50).type_as(x)
-    #     wind_effects = wind_effect_at_z(z_levels).unsqueeze(0).repeat(x.shape[0], 1)  # Expand and repeat for batch
+        # Assume z levels to check are in the range of the state limits
+        state_upper_limit, state_lower_limit = self.state_limits
+        z_levels = torch.linspace(state_lower_limit[SimpleBalloon2d.Z].item(), state_upper_limit[SimpleBalloon2d.Z].item(), steps=50).type_as(x)
+        wind_effects = wind_effect_at_z(z_levels).unsqueeze(0).repeat(x.shape[0], 1)  # Expand and repeat for batch
         
-    #     # Find the z level with the wind effect in the direction towards the goal
-    #     valid_wind_effects = wind_effects * direction_to_goal
-    #     valid_wind_effects[valid_wind_effects <= 0] = float('inf')  # Ignore wind effects in the opposite direction
+        # Find the z level with the wind effect in the direction towards the goal
+        valid_wind_effects = wind_effects * direction_to_goal
+        valid_wind_effects[valid_wind_effects <= 0] = float('inf')  # Ignore wind effects in the opposite direction
         
-    #     # Check if the wind effect makes progress towards the goal
-    #     progress_wind_effects = wind_effects.clone()
-    #     progress_wind_effects[(direction_to_goal > 0) & (wind_effects < 0)] = float('inf')
-    #     progress_wind_effects[(direction_to_goal < 0) & (wind_effects > 0)] = float('inf')
+        # Check if the wind effect makes progress towards the goal
+        progress_wind_effects = wind_effects.clone()
+        progress_wind_effects[(direction_to_goal > 0) & (wind_effects < 0)] = float('inf')
+        progress_wind_effects[(direction_to_goal < 0) & (wind_effects > 0)] = float('inf')
         
-    #     # Combine valid wind effects with progress check
-    #     combined_effects = valid_wind_effects + progress_wind_effects
+        # Combine valid wind effects with progress check
+        combined_effects = valid_wind_effects + progress_wind_effects
         
-    #     # Find the z level with the combined effect closest to pushing the balloon towards the goal
-    #     best_z_indices = torch.argmin(combined_effects, dim=1)
-    #     best_z_levels = z_levels[best_z_indices]
+        # Find the z level with the combined effect closest to pushing the balloon towards the goal
+        best_z_indices = torch.argmin(combined_effects, dim=1)
+        best_z_levels = z_levels[best_z_indices]
         
-    #     # Heuristic control gain
-    #     Kp = 0.5  # Proportional gain
+        # Heuristic control gain
+        Kp = 0.5  # Proportional gain
 
-    #     # Calculate the control input based on the current position and the best z level
-    #     vertical_diff = best_z_levels - current_z
+        # Calculate the control input based on the current position and the best z level
+        vertical_diff = best_z_levels - current_z
 
-    #     # Apply the heuristic rule: if the vertical difference is significant, apply a stronger control
-    #     if torch.abs(vertical_diff).mean() > 0.5:
-    #         u_nom = Kp * vertical_diff
-    #     else:
-    #         # If the vertical difference is small, apply a smaller control to fine-tune the position
-    #         u_nom = 0.1 * vertical_diff
+        # Apply the heuristic rule: if the vertical difference is significant, apply a stronger control
+        if torch.abs(vertical_diff).mean() > 0.5:
+            u_nom = Kp * vertical_diff
+        else:
+            # If the vertical difference is small, apply a smaller control to fine-tune the position
+            u_nom = 0.1 * vertical_diff
 
-    #     # Clip the control values by the control limits
-    #     upper_limit, lower_limit = self.control_limits
-    #     upper_limit = upper_limit.to(x.device)
-    #     lower_limit = lower_limit.to(x.device)
-    #     u_nom = torch.clamp(u_nom, min=lower_limit, max=upper_limit)
+        # Clip the control values by the control limits
+        upper_limit, lower_limit = self.control_limits
+        upper_limit = upper_limit.to(x.device)
+        lower_limit = lower_limit.to(x.device)
+        u_nom = torch.clamp(u_nom, min=lower_limit, max=upper_limit)
         
-    #     return u_nom.reshape(-1, self.n_controls)
+        return u_nom.reshape(-1, self.n_controls)

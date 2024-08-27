@@ -245,8 +245,8 @@ class RolloutStateSpaceExperiment(Experiment):
         num_plots = 1
         if "h" in results_df:
             num_plots += 1
-        if "V" in results_df:
-            num_plots += 1
+        # if "V" in results_df:
+        #     num_plots += 1
 
         # Plot the state trajectories
         fig, ax = plt.subplots(1, num_plots)
@@ -260,8 +260,8 @@ class RolloutStateSpaceExperiment(Experiment):
 
         if "h" in results_df:
             h_ax = ax[1]
-        if "V" in results_df:
-            V_ax = ax[num_plots - 1]
+        # if "V" in results_df:
+        #     V_ax = ax[num_plots - 1]
 
         # Plot the rollout
         # sns.lineplot(
@@ -287,11 +287,24 @@ class RolloutStateSpaceExperiment(Experiment):
             rollout_ax.set_ylabel(self.plot_y_label)
 
         # Remove the legend -- too much clutter
-        rollout_ax.legend([], [], frameon=False)
+        # rollout_ax.legend([], [], frameon=False)
+        
+        rollout_ax.set_aspect('equal', 'box')
 
         # Plot the environment
         controller_under_test.dynamics_model.plot_environment(rollout_ax)
+        
+        # Add goal, obstacle, and unsafe area to the plot
+        goal_x, goal_y = 3.0, 3.0  # Hardcoded goal position
+        obs_x, obs_y = 0.0, 0.0  # Hardcoded obstacle position
+        unsafe_radius = 0.5  # Hardcoded radius of the unsafe area
 
+        rollout_ax.plot(goal_x, goal_y, 'go', label="Goal")
+        rollout_ax.plot(obs_x, obs_y, 'ro', label="Obstacle")
+        unsafe_area = plt.Circle((obs_x, obs_y), unsafe_radius, color='r', alpha=0.3, label="Unsafe Area")
+        rollout_ax.add_patch(unsafe_area)
+
+        # rollout_ax.legend(loc='upper right')  # Display the legend in the upper right corner
         # Plot the barrier function if applicable
         if "h" in results_df:
             # Get the derivatives for each simulation
@@ -329,32 +342,32 @@ class RolloutStateSpaceExperiment(Experiment):
                 h_ax.set_ylabel("$h$ violation")
 
         # Plot the lyapunov function if applicable
-        if "V" in results_df:
-            for plot_idx, sim_index in enumerate(results_df["Simulation"].unique()):
-                sim_mask = results_df["Simulation"] == sim_index
-                V_ax.plot(
-                    results_df[sim_mask]["t"].to_numpy(),
-                    results_df[sim_mask]["V"].to_numpy(),
-                    linestyle="-",
-                    # marker="+",
-                    markersize=5,
-                    color=sns.color_palette(n_colors=num_traces)[plot_idx],
-                )
-            # sns.lineplot(
-            #     ax=V_ax,
-            #     x="t",
-            #     y="V",
-            #     style="Parameters",
-            #     hue="Simulation",
-            #     data=results_df,
-            # )
-            V_ax.set_ylabel("$V$")
-            V_ax.set_xlabel("t")
-            # Remove the legend -- too much clutter
-            V_ax.legend([], [], frameon=False)
+        # if "V" in results_df:
+        #     for plot_idx, sim_index in enumerate(results_df["Simulation"].unique()):
+        #         sim_mask = results_df["Simulation"] == sim_index
+        #         V_ax.plot(
+        #             results_df[sim_mask]["t"].to_numpy(),
+        #             results_df[sim_mask]["V"].to_numpy(),
+        #             linestyle="-",
+        #             # marker="+",
+        #             markersize=5,
+        #             color=sns.color_palette(n_colors=num_traces)[plot_idx],
+        #         )
+        #     # sns.lineplot(
+        #     #     ax=V_ax,
+        #     #     x="t",
+        #     #     y="V",
+        #     #     style="Parameters",
+        #     #     hue="Simulation",
+        #     #     data=results_df,
+        #     # )
+        #     V_ax.set_ylabel("$V$")
+        #     V_ax.set_xlabel("t")
+        #     # Remove the legend -- too much clutter
+        #     V_ax.legend([], [], frameon=False)
 
-            # Plot a reference line at V = 0
-            V_ax.plot([0, results_df.t.max()], [0, 0], color="k")
+        #     # Plot a reference line at V = 0
+        #     V_ax.plot([0, results_df.t.max()], [0, 0], color="k")
         
         # Save the plot images if requested
         if save_plots:

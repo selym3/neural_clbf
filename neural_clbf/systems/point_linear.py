@@ -79,8 +79,8 @@ class LinearWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_dims)
-        upper_limit[LinearWind.X] = 5
-        upper_limit[LinearWind.Y] = 5
+        upper_limit[LinearWind.X] = 8
+        upper_limit[LinearWind.Y] = 8
 
         lower_limit = -1.0 * upper_limit
 
@@ -94,15 +94,15 @@ class LinearWind(ControlAffineSystem):
         """
 
         upper_limit = torch.ones(self.n_controls)
-        upper_limit[LinearWind.UX] = 10
-        upper_limit[LinearWind.UY] = 10
+        upper_limit[LinearWind.UX] = 2
+        upper_limit[LinearWind.UY] = 2
         lower_limit = -1.0 * upper_limit
 
         return (upper_limit, lower_limit)
     
     @property
     def goal_point(self):
-        return torch.tensor([[ 4.0, 4.0 ]])
+        return torch.tensor([[ 3.0, 3.0 ]])
     
     @property
     def u_eq(self):
@@ -116,7 +116,7 @@ class LinearWind(ControlAffineSystem):
         safe_mask = x.norm(dim=-1) > 1.0
         
         # Set a safe boundary
-        safe_bound = x.norm(dim=-1) < 5.0
+        safe_bound = x.norm(dim=-1) < 7.5
         safe_mask = safe_mask.logical_and(safe_bound)
 
         return safe_mask
@@ -126,7 +126,8 @@ class LinearWind(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        unsafe_mask = x.norm(dim=-1) <= 1.0
+        unsafe_mask = x.norm(dim=-1) <= 0.5
+        unsafe_mask = unsafe_mask.logical_or(x.norm(dim=-1) > 7.8)
 
         return unsafe_mask
 
@@ -135,7 +136,7 @@ class LinearWind(ControlAffineSystem):
         args:
             x: a tensor of points in the state space
         """
-        goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.3
+        goal_mask = (x - self.goal_point.type_as(x)).norm(dim=-1) <= 0.5
 
         return goal_mask.logical_and(self.safe_mask(x))
 

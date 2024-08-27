@@ -25,10 +25,10 @@ torch.multiprocessing.set_sharing_strategy("file_system")
 start_x = torch.tensor(
     [
         [-4.0, -4.5],
-        [ 3.0,  3.0],
+        # [ 3.0,  3.0],
         # [-2.0, -3.0],
         [ 3.5, -6.0],
-        [2.0, 0.0],
+        # [2.0, 0.0],
         # [-3.5, 0.0],
         # [1.0, -2.0]
     ]
@@ -43,7 +43,7 @@ def main(args):
     nominal_params = {}
     dynamics_model = SimpleBalloon2d(nominal_params, dt=simulation_dt, controller_dt=controller_period)
 
-    print(0.7)
+    print("Simple u_nominal")
     # Initialize the DataModule
     initial_domain = [
         (-8, 8),  # x

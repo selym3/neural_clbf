@@ -49,8 +49,8 @@ def main(args):
 
     # Initialize the DataModule
     initial_conditions = [
-        (-10, 10),  # x
-        (-10, 10),  # y
+        (-8, 8),  # x
+        (-8, 8),  # y
     ]
     data_module = EpisodicDataModule(
         dynamics_model,
